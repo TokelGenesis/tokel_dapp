@@ -34,11 +34,11 @@ if (!(fs.existsSync(paths.dllDir) && fs.existsSync(manifestFile))) {
   execSync('yarn build-dll');
 }
 
-export default merge(baseConfig, {
+// The renderer has no require(); bundle everything instead of inheriting base externals.
+export default merge({ ...baseConfig, externals: [] }, {
   mode: 'development',
   devtool: 'inline-source-map',
   target: 'web',
-  externals: [],
 
   module: moduleFactory(true),
 
