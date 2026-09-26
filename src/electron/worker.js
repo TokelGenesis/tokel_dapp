@@ -526,6 +526,7 @@ parentPort.on('message', msg => {
     return true;
   }
 
+  if (!Object.values(BitgoAction).includes(msg.type)) return null;
   return bitgo[msg.type](msg.payload)
     .then(data => {
       if (data) {

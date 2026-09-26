@@ -1,6 +1,7 @@
 import scrypto, { BinaryLike } from 'crypto';
 import fs, { promises as fsp } from 'fs';
 import { homedir } from 'os';
+import path from 'path';
 
 import tar from 'tar-fs';
 
@@ -18,18 +19,32 @@ export interface Credentials {
   salt: Buffer;
   hash: Buffer;
   iv: Buffer;
+  tag?: Buffer;
 }
+
+const WALLET_FILES = ['data', 'creds'];
+
+// Wallet names arrive over IPC from the renderer; never let them escape USER_WALLET_DIR.
+export const walletDirFor = (walletName: string) => {
+  if (
+    typeof walletName !== 'string' ||
+    !/^[^/\\\0]{1,100}$/.test(walletName) ||
+    walletName === '.' ||
+    walletName === '..'
+  ) {
+    throw new Error('Invalid wallet name');
+  }
+  const dir = path.resolve(USER_WALLET_DIR, walletName);
+  if (path.dirname(dir) !== path.resolve(USER_WALLET_DIR)) {
+    throw new Error('Invalid wallet name');
+  }
+  return dir;
+};
 
 // deliberately "slow" (constant time) equality function using
 // bitwise comparison to prevent timing attacks
-const constantTimeEqual = (a: Buffer, b: Buffer) => {
-  let result = 0;
-  for (let i = a.length; i >= 0; i -= 1) {
-    // eslint-disable-next-line no-bitwise
-    result |= a[i] ^ b[i];
-  }
-  return result === 0;
-};
+const constantTimeEqual = (a: Buffer, b: Buffer) =>
+  a.length === b.length && scrypto.timingSafeEqual(a, b);
 
 export const deriveKey = (
   password: BinaryLike,
@@ -75,10 +90,10 @@ const checkPasswordHash = (derivedKey: Buffer, creds: Credentials): boolean => {
 
 // encrypt a string with a given encryption key, storing all relevant details in a named wallet (tar) file
 export const encrypt = async (walletName: string, dataString: string, encKey: BinaryLike) => {
-  const tempDir = `${USER_WALLET_DIR}/${walletName}`;
+  const tempDir = walletDirFor(walletName);
   try {
     await fsp.mkdir(USER_WALLET_DIR, { recursive: true });
-    const walletPath = `${USER_WALLET_DIR}/${walletName}${ENCRYPTION_DEFAULTS.WALLET_EXT}`;
+    const walletPath = `${tempDir}${ENCRYPTION_DEFAULTS.WALLET_EXT}`;
     const { key, salt } = await deriveKey(encKey, null);
     // define output files and create the temp directory
     await fsp.mkdir(tempDir, { recursive: true });
@@ -90,8 +105,8 @@ export const encrypt = async (walletName: string, dataString: string, encKey: Bi
     // generate hash of the password and salt
     const hash = deriveHash(key, salt);
     // encrypt the string and write to the data file using cipher
-    const encryptedData = cipher.update(Buffer.from(dataString));
-    // const authTag = cipher.getAuthTag();
+    const encryptedData = Buffer.concat([cipher.update(Buffer.from(dataString)), cipher.final()]);
+    const tag = cipher.getAuthTag();
     await fsp.writeFile(dataDestPath, encryptedData);
     await fsp.writeFile(
       credsDestPath,
@@ -100,6 +115,7 @@ export const encrypt = async (walletName: string, dataString: string, encKey: Bi
         salt: salt.toString('hex'),
         hash,
         iv: iv.toString('hex'),
+        tag: tag.toString('hex'),
       }),
       ENCRYPTION_DEFAULTS.WALLET_FILE_ENCODING
     );
@@ -109,30 +125,33 @@ export const encrypt = async (walletName: string, dataString: string, encKey: Bi
       const tarPack = tar.pack(tempDir);
       tarPack.on('error', reject).pipe(tarStream).on('error', reject).on('finish', resolve);
     });
-    // remove the temp directory
-    await fsp.rmdir(tempDir, { recursive: true });
+    await fsp.rm(tempDir, { recursive: true, force: true });
     return {
       key,
       salt,
       iv,
     };
   } catch (err) {
-    await fsp.rmdir(tempDir, { recursive: true });
+    await fsp.rm(tempDir, { recursive: true, force: true });
     throw err;
   }
 };
 
 // decrypt a wallet file created by `encrypt` with the provided encryption key
 export const decrypt = async (walletName: string, encKey: Buffer) => {
-  const tempDir = `${USER_WALLET_DIR}/${walletName}`;
+  const tempDir = walletDirFor(walletName);
   try {
-    const walletFilePath = `${USER_WALLET_DIR}/${walletName}${ENCRYPTION_DEFAULTS.WALLET_EXT}`;
+    const walletFilePath = `${tempDir}${ENCRYPTION_DEFAULTS.WALLET_EXT}`;
     // untar the .wallet file to a temp directory
     await fsp.mkdir(tempDir, { recursive: true });
     // extract the wallet file (which is a tar)
     await new Promise((resolve, reject) => {
       const tarStream = fs.createReadStream(walletFilePath);
-      const tarExtract = tar.extract(tempDir);
+      const tarExtract = tar.extract(tempDir, {
+        ignore: (name, header) =>
+          header?.type !== 'file' || !WALLET_FILES.includes(path.basename(name)),
+        map: header => ({ ...header, name: path.basename(header.name) }),
+      });
       tarStream.on('error', reject).pipe(tarExtract).on('error', reject).on('finish', resolve);
     });
     // read the creds file
@@ -145,6 +164,7 @@ export const decrypt = async (walletName: string, encKey: Buffer) => {
       salt: Buffer.from(credsJson.salt, 'hex'),
       hash: Buffer.from(credsJson.hash, 'hex'),
       iv: Buffer.from(credsJson.iv, 'hex'),
+      tag: credsJson.tag ? Buffer.from(credsJson.tag, 'hex') : undefined,
     };
     const { key } = await deriveKey(encKey, creds.salt);
     // check the stored pass+salt hash to know if we have the right password before
@@ -155,12 +175,17 @@ export const decrypt = async (walletName: string, encKey: Buffer) => {
     const dataPath = `${tempDir}/data`;
     const encryptedData = await fsp.readFile(dataPath);
     const decipher = scrypto.createDecipheriv(ENCRYPTION_DEFAULTS.ALGORITHM, key, creds.iv);
-    const decryptedData = decipher.update(encryptedData);
-    // remove the temp directory
-    await fsp.rmdir(tempDir, { recursive: true });
+    let decryptedData = decipher.update(encryptedData);
+    // Wallets written before the tag was stored can't be integrity-checked;
+    // they get a tag the next time they are re-encrypted (e.g. password change).
+    if (creds.tag) {
+      decipher.setAuthTag(creds.tag);
+      decryptedData = Buffer.concat([decryptedData, decipher.final()]);
+    }
+    await fsp.rm(tempDir, { recursive: true, force: true });
     return decryptedData;
   } catch (err) {
-    await fsp.rmdir(tempDir, { recursive: true });
+    await fsp.rm(tempDir, { recursive: true, force: true });
     throw err;
   }
 };

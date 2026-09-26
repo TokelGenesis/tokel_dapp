@@ -29,6 +29,7 @@ import {
   DEEP_LINK_IPC_ID,
   DEEP_LINK_PROTOCOL,
   IPFS_IPC_ID,
+  IpfsAction,
   VERSIONS_MSG,
   WindowControl,
 } from '../vars/defines';
@@ -75,7 +76,10 @@ const installExtensions = async () => {
 };
 
 // bitgo events from renderer
+const BITGO_ACTIONS = new Set<string>(Object.values(BitgoAction));
+
 ipcMain.on(BITGO_IPC_ID, (_, msg) => {
+  if (!BITGO_ACTIONS.has(msg?.type)) return;
   if (isDev) {
     console.group('BITGO (RENDERER -> [MAIN] -> WORKER)');
     console.log(checkData(msg));
@@ -89,7 +93,8 @@ ipcMain.on(IPFS_IPC_ID, async (event, msg) => {
   console.group('IPFS (RENDERER -> [MAIN])');
   console.log(msg);
   console.groupEnd();
-  const result = await ipfsNode.default[msg.type](msg.payload);
+  if (msg?.type !== IpfsAction.GET) return;
+  const result = await ipfsNode.default.get(msg.payload);
   event.reply(IPFS_IPC_ID, { type: msg.type, payload: result });
 });
 
@@ -97,11 +102,17 @@ ipcMain.on(VERSIONS_MSG, event => {
   event.reply(VERSIONS_MSG, { version });
 });
 
+const assertStrings = (...values: unknown[]) => {
+  if (!values.every(v => typeof v === 'string')) throw new Error('Invalid arguments');
+};
+
 ipcMain.handle('wallet:encrypt', async (_, walletName: string, dataString: string, password: string) => {
+  assertStrings(walletName, dataString, password);
   await encrypt(walletName, dataString, password);
 });
 
 ipcMain.handle('wallet:decrypt', async (_, walletName: string, password: string) => {
+  assertStrings(walletName, password);
   const data = await decrypt(walletName, Buffer.from(password));
   return data.toString();
 });
