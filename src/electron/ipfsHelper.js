@@ -2,7 +2,6 @@ const IPFS = require('ipfs-core');
 
 const tar = require('tar-stream');
 const toStream = require('it-to-stream');
-const FileType = require('file-type');
 
 const IpfsAction = {
   GET_IPFS_IMAGE_DATA: 'get',
@@ -62,11 +61,22 @@ class IpfsNodeSingleton {
 
       extract.on('finish', async () => {
         log('Finishing stream');
-        type = await FileType.fromBuffer(files[0]);
-        const base64 = `data:${type.mime};base64,${files[0].toString('base64')}`;
-        log('Resolving base64', type);
-        resolve({ filedata: base64, type });
+        try {
+          const { fileTypeFromBuffer } = await import('file-type');
+          type = files[0] && (await fileTypeFromBuffer(files[0]));
+          // Only media is ever displayed; anything else (html, svg, unknown) is dropped.
+          if (!type || !/^(image|video|audio)\//.test(type.mime)) {
+            reject(Error('Unsupported IPFS media type'));
+            return;
+          }
+          const base64 = `data:${type.mime};base64,${files[0].toString('base64')}`;
+          log('Resolving base64', type);
+          resolve({ filedata: base64, type });
+        } catch (e) {
+          reject(e);
+        }
       });
+      extract.on('error', reject);
 
       log('Starting stream', ipfsId);
       const stream = toStream(

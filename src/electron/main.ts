@@ -148,8 +148,12 @@ ipcMain.on(IPFS_IPC_ID, async (event, msg) => {
   console.log(msg);
   console.groupEnd();
   if (msg?.type !== IpfsAction.GET) return;
-  const result = await ipfsNode.default.get(msg.payload);
-  event.reply(IPFS_IPC_ID, { type: msg.type, payload: result });
+  try {
+    const result = await ipfsNode.default.get(msg.payload);
+    event.reply(IPFS_IPC_ID, { type: msg.type, payload: result });
+  } catch (e) {
+    console.error('IPFS get failed', e);
+  }
 });
 
 ipcMain.on(VERSIONS_MSG, event => {
