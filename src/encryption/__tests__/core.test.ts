@@ -1,0 +1,127 @@
+/**
+ * @jest-environment node
+ */
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
+import tar from 'tar-fs';
+
+jest.setTimeout(10 * 60 * 1000);
+
+const mockHome = fs.mkdtempSync(path.join(os.tmpdir(), 'tokel-wallet-test-'));
+jest.mock('os', () => ({ ...jest.requireActual('os'), homedir: () => mockHome }));
+
+// eslint-disable-next-line import/first
+import { USER_WALLET_DIR, decrypt, encrypt } from '../core';
+
+const unpack = (name: string) => {
+  const dir = path.join(USER_WALLET_DIR, `${name}-unpacked`);
+  return new Promise<string>(resolve =>
+    fs
+      .createReadStream(path.join(USER_WALLET_DIR, `${name}.wallet`))
+      .pipe(tar.extract(dir))
+      .on('finish', () => resolve(dir))
+  );
+};
+
+const repack = (dir: string, name: string) =>
+  new Promise<void>(resolve =>
+    tar
+      .pack(dir)
+      .pipe(fs.createWriteStream(path.join(USER_WALLET_DIR, `${name}.wallet`)))
+      .on('finish', () => {
+        fs.rmSync(dir, { recursive: true });
+        resolve();
+      })
+  );
+
+afterAll(() => fs.rmSync(mockHome, { recursive: true, force: true }));
+
+describe('wallet encryption', () => {
+  it('round-trips and rejects a wrong password', async () => {
+    await encrypt('roundtrip', 'Ukey-roundtrip', 'password1');
+    expect((await decrypt('roundtrip', Buffer.from('password1'))).toString()).toBe(
+      'Ukey-roundtrip'
+    );
+    await expect(decrypt('roundtrip', Buffer.from('password2'))).rejects.toThrow(
+      'Incorrect password'
+    );
+  });
+
+  it.each(['..', '.', '../escape', '../../..', '/etc/passwd', 'a/b', 'a\\b', 'nul\0byte', ''])(
+    'refuses wallet name %j without touching the filesystem outside the wallet dir',
+    async name => {
+      const before = fs.readdirSync(mockHome);
+      await expect(encrypt(name, 'x', 'password1')).rejects.toThrow('Invalid wallet name');
+      await expect(decrypt(name, Buffer.from('password1'))).rejects.toThrow('Invalid wallet name');
+      expect(fs.readdirSync(mockHome)).toEqual(before);
+    }
+  );
+
+  it('detects a tampered ciphertext', async () => {
+    await encrypt('tamper', 'Ukey-tamper', 'password1');
+    const dir = await unpack('tamper');
+    const data = fs.readFileSync(path.join(dir, 'data'));
+    data[0] ^= 0xff;
+    fs.writeFileSync(path.join(dir, 'data'), data);
+    await repack(dir, 'tamper');
+    await expect(decrypt('tamper', Buffer.from('password1'))).rejects.toThrow();
+  });
+
+  it('still opens legacy wallets written without an auth tag', async () => {
+    await encrypt('legacy', 'Ukey-legacy', 'password1');
+    const dir = await unpack('legacy');
+    const creds = JSON.parse(fs.readFileSync(path.join(dir, 'creds'), 'utf8'));
+    delete creds.tag;
+    fs.writeFileSync(path.join(dir, 'creds'), JSON.stringify(creds));
+    await repack(dir, 'legacy');
+    expect((await decrypt('legacy', Buffer.from('password1'))).toString()).toBe('Ukey-legacy');
+  });
+
+  it('ignores path-traversal entries inside a malicious wallet file', async () => {
+    await encrypt('evil', 'Ukey-evil', 'password1');
+    const dir = await unpack('evil');
+    const outside = path.join(mockHome, 'pwned');
+    const packed = path.join(USER_WALLET_DIR, 'evil.wallet');
+    await repack(dir, 'evil');
+    // Append a crafted entry that tries to escape the extraction directory.
+    // eslint-disable-next-line global-require
+    const tarStream = require('tar-stream');
+    const evilPack = tarStream.pack();
+    const extract = tarStream.extract();
+    await new Promise<void>((resolve, reject) => {
+      extract.on('entry', (header, stream, next) => {
+        stream.pipe(evilPack.entry(header, next));
+      });
+      extract.on('finish', () => {
+        evilPack.entry({ name: '../../pwned' }, 'owned');
+        evilPack.finalize();
+      });
+      const chunks: Buffer[] = [];
+      evilPack.on('data', (c: Buffer) => chunks.push(c));
+      evilPack.on('end', () => {
+        fs.writeFileSync(packed, Buffer.concat(chunks));
+        resolve();
+      });
+      fs.createReadStream(packed).on('error', reject).pipe(extract);
+    });
+    expect((await decrypt('evil', Buffer.from('password1'))).toString()).toBe('Ukey-evil');
+    expect(fs.existsSync(outside)).toBe(false);
+  });
+
+  it('survives randomised wallet names without escaping the wallet dir', async () => {
+    const alphabet = 'ab./\\\0 .-_~%';
+    const before = fs.readdirSync(mockHome).sort();
+    for (let i = 0; i < 500; i += 1) {
+      const len = 1 + Math.floor(Math.random() * 8);
+      let name = '';
+      for (let j = 0; j < len; j += 1) name += alphabet[Math.floor(Math.random() * alphabet.length)];
+      // Only exercise validation; valid names would each cost a 10M-round PBKDF2.
+      if (/^[^/\\\0]+$/.test(name) && name !== '.' && name !== '..') continue;
+      // eslint-disable-next-line no-await-in-loop
+      await expect(encrypt(name, 'x', 'password1')).rejects.toThrow('Invalid wallet name');
+    }
+    expect(fs.readdirSync(mockHome).sort()).toEqual(before);
+  });
+});

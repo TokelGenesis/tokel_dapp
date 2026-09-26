@@ -93,7 +93,6 @@ class BitgoSingleton {
       this.pubkeyBuffer = keyPair.getPublicKeyBuffer();
       this.pubkey = this.pubkeyBuffer.toString('hex');
       return {
-        wif: this.wif,
         address: this.address,
         pubkey: this.pubkey,
         result: 'success',

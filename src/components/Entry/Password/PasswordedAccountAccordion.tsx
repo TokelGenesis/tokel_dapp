@@ -8,7 +8,6 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import PasswordIcon from 'assets/password.svg';
 import { dispatch } from 'store/rematch';
 import { selectEnvError, selectLoginFeedback } from 'store/selectors';
-import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
 import { V } from 'util/theming';
 import { Colors, SIZES } from 'vars/defines';
 import { IWallet } from 'vars/types';
@@ -180,9 +179,8 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
     }
     setIsLoading(true);
     try {
-      const decryptedData = await window.tokelApi.wallet.decrypt(wallet.name, password);
+      await window.tokelApi.wallet.login(wallet.name, password);
       dispatch.account.SET_WALLET_FILE_NAME(wallet.name);
-      sendToBitgo(BitgoAction.LOGIN, { key: decryptedData });
       setError('');
     } catch (err) {
       setError('Incorrect password');

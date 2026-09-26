@@ -1,4 +1,3 @@
-import path from 'path';
 import { contextBridge, ipcRenderer } from 'electron';
 
 const SEND_CHANNELS = [
@@ -26,13 +25,13 @@ type SendChannel = (typeof SEND_CHANNELS)[number];
 type ReceiveChannel = (typeof RECEIVE_CHANNELS)[number];
 
 const api = {
-  electronDir: path.join(__dirname),
-
   wallet: {
     encrypt: (walletName: string, dataString: string, password: string): Promise<void> =>
       ipcRenderer.invoke('wallet:encrypt', walletName, dataString, password),
-    decrypt: (walletName: string, password: string): Promise<string> =>
-      ipcRenderer.invoke('wallet:decrypt', walletName, password),
+    login: (walletName: string, password: string): Promise<void> =>
+      ipcRenderer.invoke('wallet:login', walletName, password),
+    changePassword: (walletName: string, currentPassword: string, newPassword: string): Promise<void> =>
+      ipcRenderer.invoke('wallet:changePassword', walletName, currentPassword, newPassword),
     listWallets: (): Promise<Array<{ name: string; filename: string }>> =>
       ipcRenderer.invoke('wallet:list'),
   },

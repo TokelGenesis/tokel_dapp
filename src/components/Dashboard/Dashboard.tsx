@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
-import { selectChosenToken, selectKey } from 'store/selectors';
+import { selectAccountAddress, selectChosenToken } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
 import { V } from 'util/theming';
 
@@ -24,17 +24,19 @@ const DashboardRoot = styled.div`
 const TX_FETCH_INTERVAL_MS = 30 * 1000;
 
 const Dashboard = (): React.ReactElement => {
-  const key = useSelector(selectKey);
+  const address = useSelector(selectAccountAddress);
   const chosenToken = useSelector(selectChosenToken);
 
   React.useEffect(() => {
     const txInterval = setInterval(() => {
-      sendToBitgo(BitgoAction.LOGIN, { key });
+      if (!address) return;
+      sendToBitgo(BitgoAction.LIST_UNSPENT, { address });
+      sendToBitgo(BitgoAction.LIST_TRANSACTIONS, { address });
     }, TX_FETCH_INTERVAL_MS);
     return () => {
       clearInterval(txInterval);
     };
-  }, [key]);
+  }, [address]);
 
   return (
     <DashboardRoot>

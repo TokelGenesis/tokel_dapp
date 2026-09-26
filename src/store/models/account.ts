@@ -23,7 +23,6 @@ export interface AccountState {
 
 interface LoginArgs {
   data: {
-    wif: string;
     address: string;
     seed: string;
     pubkey: string;
@@ -99,7 +98,8 @@ export default createModel<RootModel>()({
       dispatch.account.SET_WALLET_FILES(wallets);
     },
     async login({ data }: LoginArgs) {
-      dispatch.account.SET_KEY(data.wif);
+      dispatch.account.SET_KEY(null);
+      dispatch.account.SET_SEED(null);
       dispatch.account.SET_PUBKEY(data.pubkey);
       dispatch.account.SET_ADDRESS(data.address);
     },

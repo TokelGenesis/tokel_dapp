@@ -15,7 +15,7 @@ import { Worker } from 'worker_threads';
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 
-import { BrowserWindow, app, ipcMain, shell } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
   REDUX_DEVTOOLS,
@@ -78,12 +78,66 @@ const installExtensions = async () => {
 // bitgo events from renderer
 const BITGO_ACTIONS = new Set<string>(Object.values(BitgoAction));
 
-ipcMain.on(BITGO_IPC_ID, (_, msg) => {
+// Anything that signs a transaction must be approved in a native dialog the
+// renderer cannot script, so a compromised UI cannot move funds on its own.
+const describeFundsAction = (type: string, p: Record<string, unknown> = {}): string | null => {
+  switch (type) {
+    case BitgoAction.SPEND:
+      return `Send ${p.amount} TKL\nto ${p.address}`;
+    case BitgoAction.TOKEN_V2_TRANSFER:
+      return `Send ${p.amount} units of token\n${p.tokenid}\nto pubkey ${p.destpubkey}`;
+    case BitgoAction.TOKEN_V2_CREATE_TOKEL:
+      return `Create token "${p.name}" with supply ${p.supply}`;
+    case BitgoAction.ASSET_V2_FILL_ASK:
+    case BitgoAction.ASSET_V2_FILL_BID:
+      return `Fill DEX order ${p.orderId}\ntoken ${p.tokenId}\namount ${p.amount}${
+        p.unitPrice !== undefined ? ` at ${p.unitPrice} TKL each` : ''
+      }`;
+    case BitgoAction.ASSET_V2_POST_ASK:
+    case BitgoAction.ASSET_V2_POST_BID:
+      return `Place DEX ${type === BitgoAction.ASSET_V2_POST_ASK ? 'sell' : 'buy'} order\ntoken ${
+        p.tokenId
+      }\namount ${p.amount} at ${p.unitPrice} TKL each`;
+    case BitgoAction.ASSET_V2_CANCEL_ASK:
+    case BitgoAction.ASSET_V2_CANCEL_BID:
+      return `Cancel DEX order ${p.orderId}`;
+    default:
+      return null;
+  }
+};
+
+const confirmFundsAction = async (description: string) => {
+  const options = {
+    type: 'warning' as const,
+    buttons: ['Cancel', 'Confirm'],
+    defaultId: 0,
+    cancelId: 0,
+    noLink: true,
+    title: 'Confirm transaction',
+    message: 'Confirm this transaction',
+    detail: description,
+  };
+  const { response } = mainWindow
+    ? await dialog.showMessageBox(mainWindow, options)
+    : await dialog.showMessageBox(options);
+  return response === 1;
+};
+
+ipcMain.on(BITGO_IPC_ID, async (_, msg) => {
   if (!BITGO_ACTIONS.has(msg?.type)) return;
   if (isDev) {
     console.group('BITGO (RENDERER -> [MAIN] -> WORKER)');
     console.log(checkData(msg));
     console.groupEnd();
+  }
+  const description = describeFundsAction(msg.type, msg.payload);
+  if (description && !(await confirmFundsAction(description))) {
+    mainWindow?.webContents.send(BITGO_IPC_ID, {
+      type: msg.type,
+      data: null,
+      error: 'Transaction cancelled',
+    });
+    return;
   }
   bitgoWorker.postMessage(msg);
 });
@@ -111,11 +165,22 @@ ipcMain.handle('wallet:encrypt', async (_, walletName: string, dataString: strin
   await encrypt(walletName, dataString, password);
 });
 
-ipcMain.handle('wallet:decrypt', async (_, walletName: string, password: string) => {
+// The decrypted key goes straight to the signing worker and is never returned
+// to the renderer.
+ipcMain.handle('wallet:login', async (_, walletName: string, password: string) => {
   assertStrings(walletName, password);
   const data = await decrypt(walletName, Buffer.from(password));
-  return data.toString();
+  bitgoWorker.postMessage({ type: BitgoAction.LOGIN, payload: { key: data.toString() } });
 });
+
+ipcMain.handle(
+  'wallet:changePassword',
+  async (_, walletName: string, currentPassword: string, newPassword: string) => {
+    assertStrings(walletName, currentPassword, newPassword);
+    const data = await decrypt(walletName, Buffer.from(currentPassword));
+    await encrypt(walletName, data.toString(), newPassword);
+  }
+);
 
 ipcMain.handle('wallet:list', async () => {
   try {
@@ -186,9 +251,10 @@ const createWindow = async () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: isProd
         ? path.join(__dirname, 'preload.js')
-        : path.join(app.getAppPath(), 'build', 'preload.js'),
+        : path.join(__dirname, '../../build/preload.js'),
     },
   });
 

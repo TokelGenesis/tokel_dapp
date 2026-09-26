@@ -38,8 +38,7 @@ const ChangePasswordForm = () => {
       if (newPass === currentPass) {
         throw new Error('new password is unchanged');
       }
-      const privKey = await window.tokelApi.wallet.decrypt(existingWalletName, currentPass);
-      await window.tokelApi.wallet.encrypt(existingWalletName, privKey, newPass);
+      await window.tokelApi.wallet.changePassword(existingWalletName, currentPass, newPass);
       setError(null);
       setSuccess('password successfully set');
       setCurrentPass('');
