@@ -19,55 +19,58 @@ CheckNodeEnv('production');
 DeleteSourceMaps();
 
 // The renderer has no require(); bundle everything instead of inheriting base externals.
-export default merge({ ...baseConfig, externals: [] }, {
-  ...(process.env.DEBUG_PROD === 'true' ? { devtool: 'source-map' } : {}),
-  mode: 'production',
-  target: 'web',
+export default merge(
+  { ...baseConfig, externals: [] },
+  {
+    ...(process.env.DEBUG_PROD === 'true' ? { devtool: 'source-map' } : {}),
+    mode: 'production',
+    target: 'web',
 
-  entry: ['core-js', 'regenerator-runtime/runtime', paths.appIndex],
+    entry: ['core-js', 'regenerator-runtime/runtime', paths.appIndex],
 
-  output: {
-    path: paths.electronDistDir,
-    publicPath: '../../dist/',
-    filename: 'renderer.js',
-  },
-
-  module: moduleFactory(false),
-
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        parallel: true,
-        extractComments: false,
-      }),
-      new CssMinimizerPlugin(),
-    ],
-  },
-
-  resolve: {
-    fallback: {
-      buffer: require.resolve('buffer/'),
+    output: {
+      path: paths.electronDistDir,
+      publicPath: '../../dist/',
+      filename: 'renderer.js',
     },
-  },
 
-  plugins: [
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
+    module: moduleFactory(false),
 
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production',
-      DEBUG_PROD: false,
-    }),
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          parallel: true,
+          extractComments: false,
+        }),
+        new CssMinimizerPlugin(),
+      ],
+    },
 
-    new MiniCssExtractPlugin({
-      filename: 'style.css',
-    }),
+    resolve: {
+      fallback: {
+        buffer: require.resolve('buffer/'),
+      },
+    },
 
-    new BundleAnalyzerPlugin({
-      analyzerMode: process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
-      openAnalyzer: process.env.OPEN_ANALYZER === 'true',
-    }),
-  ],
-});
+    plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+      }),
+
+      new webpack.EnvironmentPlugin({
+        NODE_ENV: 'production',
+        DEBUG_PROD: false,
+      }),
+
+      new MiniCssExtractPlugin({
+        filename: 'style.css',
+      }),
+
+      new BundleAnalyzerPlugin({
+        analyzerMode: process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
+        openAnalyzer: process.env.OPEN_ANALYZER === 'true',
+      }),
+    ],
+  }
+);

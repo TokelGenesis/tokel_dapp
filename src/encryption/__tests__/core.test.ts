@@ -13,9 +13,9 @@ jest.setTimeout(10 * 60 * 1000);
 // it must create the temp home itself.
 jest.mock('os', () => {
   const actual = jest.requireActual('os');
-  const dir = jest.requireActual('fs').mkdtempSync(
-    jest.requireActual('path').join(actual.tmpdir(), 'tokel-wallet-test-')
-  );
+  const dir = jest
+    .requireActual('fs')
+    .mkdtempSync(jest.requireActual('path').join(actual.tmpdir(), 'tokel-wallet-test-'));
   return { ...actual, homedir: () => dir };
 });
 
@@ -77,7 +77,7 @@ describe('wallet encryption', () => {
     await encrypt('tamper', 'Ukey-tamper', 'password1');
     const dir = await unpack('tamper');
     const data = fs.readFileSync(path.join(dir, 'data'));
-    data[0] ^= 0xff;
+    data[0] = 255 - data[0];
     fs.writeFileSync(path.join(dir, 'data'), data);
     await repack(dir, 'tamper');
     await expect(decrypt('tamper', Buffer.from('password1'))).rejects.toThrow();
@@ -127,15 +127,21 @@ describe('wallet encryption', () => {
   it('survives randomised wallet names without escaping the wallet dir', async () => {
     const alphabet = 'ab./\\\0 .-_~%';
     const before = fs.readdirSync(mockHome).sort();
-    for (let i = 0; i < 500; i += 1) {
-      const len = 1 + Math.floor(Math.random() * 8);
-      let name = '';
-      for (let j = 0; j < len; j += 1) name += alphabet[Math.floor(Math.random() * alphabet.length)];
-      // Only exercise validation; valid names would each cost a 10M-round PBKDF2.
-      if (/^[^/\\\0]+$/.test(name) && name !== '.' && name !== '..') continue;
-      // eslint-disable-next-line no-await-in-loop
-      await expect(encrypt(name, 'x', 'password1')).rejects.toThrow('Invalid wallet name');
-    }
+    const isValid = (name: string) => /^[^/\\\0]+$/.test(name) && name !== '.' && name !== '..';
+    const names = Array.from({ length: 500 }, () =>
+      Array.from(
+        { length: 1 + Math.floor(Math.random() * 8) },
+        () => alphabet[Math.floor(Math.random() * alphabet.length)]
+      ).join('')
+    );
+    // Only exercise invalid names; valid ones would each cost a 10M-round PBKDF2.
+    const invalid = names.filter(name => !isValid(name));
+    expect(invalid.length).toBeGreaterThan(0);
+    await Promise.all(
+      invalid.map(name =>
+        expect(encrypt(name, 'x', 'password1')).rejects.toThrow('Invalid wallet name')
+      )
+    );
     expect(fs.readdirSync(mockHome).sort()).toEqual(before);
   });
 });

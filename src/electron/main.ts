@@ -32,9 +32,9 @@ import {
   IpfsAction,
   VERSIONS_MSG,
   WindowControl,
+  ENCRYPTION_DEFAULTS,
 } from '../vars/defines';
 import { encrypt, decrypt, USER_WALLET_DIR } from '../encryption/core';
-import { ENCRYPTION_DEFAULTS } from '../vars/defines';
 import MenuBuilder from './menu';
 import packagejson from './package.json';
 
@@ -164,10 +164,13 @@ const assertStrings = (...values: unknown[]) => {
   if (!values.every(v => typeof v === 'string')) throw new Error('Invalid arguments');
 };
 
-ipcMain.handle('wallet:encrypt', async (_, walletName: string, dataString: string, password: string) => {
-  assertStrings(walletName, dataString, password);
-  await encrypt(walletName, dataString, password);
-});
+ipcMain.handle(
+  'wallet:encrypt',
+  async (_, walletName: string, dataString: string, password: string) => {
+    assertStrings(walletName, dataString, password);
+    await encrypt(walletName, dataString, password);
+  }
+);
 
 // The decrypted key goes straight to the signing worker and is never returned
 // to the renderer.

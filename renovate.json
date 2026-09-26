@@ -3,27 +3,47 @@
   "semanticCommits": "enabled",
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Renovate Dashboard",
-  "baseBranches": ["development"],
+  "baseBranches": [
+    "development"
+  ],
   "rebaseWhen": "conflicted",
   "commitMessageTopic": "{{depName}}",
   "commitMessageExtra": "to {{newVersion}}",
   "commitMessageSuffix": "",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "npm": {
     "minimumReleaseAge": "3 days"
   },
-  "assignees": ["thecomputergenie"],
-  "automerge": true,
+  "assignees": [
+    "thecomputergenie"
+  ],
+  "automerge": false,
   "additionalBranchPrefix": "{{parentDir}}-",
   "packageRules": [
     {
-      "matchPackageNames": ["containerbase/node"],
+      "matchPackageNames": [
+        "containerbase/node"
+      ],
       "versioning": "node"
     },
     {
-      "matchDepTypes": ["dependencies"],
-      "labels": ["dependencies"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"]
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "labels": [
+        "dependencies"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ]
     }
-  ]
+  ],
+  "major": {
+    "dependencyDashboardApproval": true
+  }
 }

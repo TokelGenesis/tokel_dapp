@@ -21,8 +21,8 @@ const RECEIVE_CHANNELS = [
   'update-downloaded',
 ] as const;
 
-type SendChannel = (typeof SEND_CHANNELS)[number];
-type ReceiveChannel = (typeof RECEIVE_CHANNELS)[number];
+type SendChannel = typeof SEND_CHANNELS[number];
+type ReceiveChannel = typeof RECEIVE_CHANNELS[number];
 
 const api = {
   wallet: {
@@ -30,7 +30,11 @@ const api = {
       ipcRenderer.invoke('wallet:encrypt', walletName, dataString, password),
     login: (walletName: string, password: string): Promise<void> =>
       ipcRenderer.invoke('wallet:login', walletName, password),
-    changePassword: (walletName: string, currentPassword: string, newPassword: string): Promise<void> =>
+    changePassword: (
+      walletName: string,
+      currentPassword: string,
+      newPassword: string
+    ): Promise<void> =>
       ipcRenderer.invoke('wallet:changePassword', walletName, currentPassword, newPassword),
     listWallets: (): Promise<Array<{ name: string; filename: string }>> =>
       ipcRenderer.invoke('wallet:list'),

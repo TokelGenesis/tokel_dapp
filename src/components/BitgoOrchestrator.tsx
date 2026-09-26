@@ -37,7 +37,7 @@ const BitgoOrchestrator = () => {
   const myAddress = useSelector(selectAccountAddress);
 
   React.useEffect(() => {
-    const unsub = window.tokelApi.on(BITGO_IPC_ID, (raw) => {
+    const unsub = window.tokelApi.on(BITGO_IPC_ID, raw => {
       const payload = raw as BitgoMsg;
       console.group('BITGO (ORCHESTRATOR)');
       if (IS_DEV) {

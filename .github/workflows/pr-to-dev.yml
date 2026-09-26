@@ -14,16 +14,20 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
           cache: yarn
 
       - name: Install packages with Yarn
         run: yarn install --frozen-lockfile
+
+      - name: Fail on known vulnerabilities in shipped dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: yarn audit --groups dependencies --level moderate
 
       - name: Build with webpack
         run: yarn build

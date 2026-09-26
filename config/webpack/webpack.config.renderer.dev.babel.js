@@ -35,84 +35,87 @@ if (!(fs.existsSync(paths.dllDir) && fs.existsSync(manifestFile))) {
 }
 
 // The renderer has no require(); bundle everything instead of inheriting base externals.
-export default merge({ ...baseConfig, externals: [] }, {
-  mode: 'development',
-  devtool: 'inline-source-map',
-  target: 'web',
+export default merge(
+  { ...baseConfig, externals: [] },
+  {
+    mode: 'development',
+    devtool: 'inline-source-map',
+    target: 'web',
 
-  module: moduleFactory(true),
+    module: moduleFactory(true),
 
-  entry: ['core-js', 'regenerator-runtime/runtime', require.resolve(paths.appIndex)],
+    entry: ['core-js', 'regenerator-runtime/runtime', require.resolve(paths.appIndex)],
 
-  output: {
-    publicPath: `http://localhost:${port}/dist/`,
-    filename: 'renderer.dev.js',
-  },
-
-  resolve: {
-    fallback: {
-      buffer: require.resolve('buffer/'),
+    output: {
+      publicPath: `http://localhost:${port}/dist/`,
+      filename: 'renderer.dev.js',
     },
-  },
 
-  plugins: [
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
-
-    new webpack.DllReferencePlugin({
-      context: paths.dllDir,
-      manifest: require(manifestFile),
-      sourceType: 'var',
-    }),
-
-    new webpack.NoEmitOnErrorsPlugin(),
-
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
-    }),
-
-    new webpack.LoaderOptionsPlugin({
-      debug: true,
-    }),
-
-    new ReactRefreshWebpackPlugin(),
-  ],
-
-  node: {
-    __dirname: false,
-    __filename: false,
-  },
-
-  devServer: {
-    port,
-    publicPath,
-    compress: true,
-    noInfo: false,
-    stats: 'errors-only',
-    inline: true,
-    lazy: false,
-    hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
-    contentBase: path.join(__dirname, 'dist'),
-    watchOptions: {
-      aggregateTimeout: 300,
-      ignored: /node_modules/,
-      poll: 100,
+    resolve: {
+      fallback: {
+        buffer: require.resolve('buffer/'),
+      },
     },
-    historyApiFallback: {
-      verbose: true,
-      disableDotRule: false,
+
+    plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+      }),
+
+      new webpack.DllReferencePlugin({
+        context: paths.dllDir,
+        manifest: require(manifestFile),
+        sourceType: 'var',
+      }),
+
+      new webpack.NoEmitOnErrorsPlugin(),
+
+      new webpack.EnvironmentPlugin({
+        NODE_ENV: 'development',
+      }),
+
+      new webpack.LoaderOptionsPlugin({
+        debug: true,
+      }),
+
+      new ReactRefreshWebpackPlugin(),
+    ],
+
+    node: {
+      __dirname: false,
+      __filename: false,
     },
-    before() {
-      console.log('Starting Main Process...');
-      spawn('npm', ['run', 'start:main'], {
-        shell: true,
-        env: process.env,
-        stdio: 'inherit',
-      })
-        .on('close', code => process.exit(code))
-        .on('error', spawnError => console.error(spawnError));
+
+    devServer: {
+      port,
+      publicPath,
+      compress: true,
+      noInfo: false,
+      stats: 'errors-only',
+      inline: true,
+      lazy: false,
+      hot: true,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      contentBase: path.join(__dirname, 'dist'),
+      watchOptions: {
+        aggregateTimeout: 300,
+        ignored: /node_modules/,
+        poll: 100,
+      },
+      historyApiFallback: {
+        verbose: true,
+        disableDotRule: false,
+      },
+      before() {
+        console.log('Starting Main Process...');
+        spawn('npm', ['run', 'start:main'], {
+          shell: true,
+          env: process.env,
+          stdio: 'inherit',
+        })
+          .on('close', code => process.exit(code))
+          .on('error', spawnError => console.error(spawnError));
+      },
     },
-  },
-});
+  }
+);
