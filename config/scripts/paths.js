@@ -25,6 +25,7 @@ export default {
 
   indexHtml: resolveRoot('src/electron/index.html'),
   electronMainFile: resolveRoot('src/electron/main.ts'),
+  electronPreloadFile: resolveRoot('src/electron/preload.ts'),
   nativePackageJson: resolveRoot('src/electron/package.json'),
   nativeNodeModules: resolveRoot('src/electron/node_modules'),
 };

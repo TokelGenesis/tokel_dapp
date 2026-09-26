@@ -6,7 +6,6 @@ import styled from '@emotion/styled';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 
 import PasswordIcon from 'assets/password.svg';
-import { decrypt } from 'encryption/core';
 import { dispatch } from 'store/rematch';
 import { selectEnvError, selectLoginFeedback } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
@@ -181,9 +180,9 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
     }
     setIsLoading(true);
     try {
-      const decryptedData = await decrypt(wallet.name, Buffer.from(password));
+      const decryptedData = await window.tokelApi.wallet.decrypt(wallet.name, password);
       dispatch.account.SET_WALLET_FILE_NAME(wallet.name);
-      sendToBitgo(BitgoAction.LOGIN, { key: decryptedData.toString() });
+      sendToBitgo(BitgoAction.LOGIN, { key: decryptedData });
       setError('');
     } catch (err) {
       setError('Incorrect password');

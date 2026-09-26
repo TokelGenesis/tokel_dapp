@@ -1,7 +1,7 @@
 // nspv settings
 // export const TICKER = 'TKLTEST';
 
-import { CipherGCMTypes } from 'crypto';
+import type { CipherGCMTypes } from 'crypto';
 
 // export const RPC_PORT = '22025';
 export const TICKER = 'TKL';

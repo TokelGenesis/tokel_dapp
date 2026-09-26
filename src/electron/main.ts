@@ -1,5 +1,6 @@
 /* eslint global-require: off, no-console: off */
 
+import { promises as fsp } from 'fs';
 import path from 'path';
 import { Worker } from 'worker_threads';
 
@@ -31,6 +32,8 @@ import {
   VERSIONS_MSG,
   WindowControl,
 } from '../vars/defines';
+import { encrypt, decrypt, USER_WALLET_DIR } from '../encryption/core';
+import { ENCRYPTION_DEFAULTS } from '../vars/defines';
 import MenuBuilder from './menu';
 import packagejson from './package.json';
 
@@ -94,6 +97,30 @@ ipcMain.on(VERSIONS_MSG, event => {
   event.reply(VERSIONS_MSG, { version });
 });
 
+ipcMain.handle('wallet:encrypt', async (_, walletName: string, dataString: string, password: string) => {
+  await encrypt(walletName, dataString, password);
+});
+
+ipcMain.handle('wallet:decrypt', async (_, walletName: string, password: string) => {
+  const data = await decrypt(walletName, Buffer.from(password));
+  return data.toString();
+});
+
+ipcMain.handle('wallet:list', async () => {
+  try {
+    const files = await fsp.readdir(USER_WALLET_DIR);
+    return files
+      .filter(r => r.endsWith(ENCRYPTION_DEFAULTS.WALLET_EXT))
+      .sort()
+      .map(filename => ({
+        name: filename.split('.').slice(0, -1).join('.'),
+        filename,
+      }));
+  } catch {
+    return [];
+  }
+});
+
 // window events from renderer
 ipcMain.on('window-controls', async (_, arg) => {
   if (mainWindow) {
@@ -146,8 +173,11 @@ const createWindow = async () => {
     resizable: true,
     icon: resolveAsset('icon.png'),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: isProd
+        ? path.join(__dirname, 'preload.js')
+        : path.join(app.getAppPath(), 'build', 'preload.js'),
     },
   });
 

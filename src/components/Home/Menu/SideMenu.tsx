@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
-import { ipcRenderer } from 'electron';
 
 import BagIcon from 'assets/Bag.svg';
 import SwapIcon from 'assets/Swap.svg';
@@ -64,15 +63,12 @@ const SideMenu = () => {
 
   React.useEffect(() => {
     if (!currVersion) {
-      ipcRenderer.send(VERSIONS_MSG);
+      window.tokelApi.send(VERSIONS_MSG);
     }
 
-    ipcRenderer.on(VERSIONS_MSG, (_, { version }) => {
-      setCurrVersion(version);
+    return window.tokelApi.on(VERSIONS_MSG, (data: unknown) => {
+      setCurrVersion((data as { version: string }).version);
     });
-    return () => {
-      ipcRenderer.removeAllListeners(VERSIONS_MSG);
-    };
   }, [currVersion]);
 
   return (

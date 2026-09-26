@@ -37,7 +37,8 @@ if (!(fs.existsSync(paths.dllDir) && fs.existsSync(manifestFile))) {
 export default merge(baseConfig, {
   mode: 'development',
   devtool: 'inline-source-map',
-  target: 'electron-renderer',
+  target: 'web',
+  externals: [],
 
   module: moduleFactory(true),
 
@@ -48,7 +49,17 @@ export default merge(baseConfig, {
     filename: 'renderer.dev.js',
   },
 
+  resolve: {
+    fallback: {
+      buffer: require.resolve('buffer/'),
+    },
+  },
+
   plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+
     new webpack.DllReferencePlugin({
       context: paths.dllDir,
       manifest: require(manifestFile),

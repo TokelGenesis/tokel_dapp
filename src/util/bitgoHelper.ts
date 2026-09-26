@@ -1,5 +1,3 @@
-import { ipcRenderer } from 'electron';
-
 import { BITGO_IPC_ID, NetworkType } from '../vars/defines';
 import { CreateTokenPayload } from './token-types';
 
@@ -87,12 +85,15 @@ export function sendToBitgo<T extends MsgValue>(
   type: T,
   ...options: ConditionalOptions<BitgoMessageParamList, T>
 ): void {
-  ipcRenderer.send(BITGO_IPC_ID, { type, payload: options[0] });
+  window.tokelApi.send(BITGO_IPC_ID, { type, payload: options[0] });
 }
 
-type BitgoMsg = {
+export type BitgoMsg = {
   type: BitgoAction;
   payload: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: any;
+  error?: string;
 };
 
 export const checkData = (msg: BitgoMsg) => {

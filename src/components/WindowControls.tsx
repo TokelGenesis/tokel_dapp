@@ -1,7 +1,6 @@
 import React from 'react';
 
 import styled from '@emotion/styled';
-import { ipcRenderer } from 'electron';
 
 import { WindowControl } from 'vars/defines';
 
@@ -38,7 +37,7 @@ const WindowControls = () => (
       <WindowButton
         key={control}
         control={control}
-        onClick={() => ipcRenderer.send('window-controls', control)}
+        onClick={() => window.tokelApi.send('window-controls', control)}
       />
     ))}
   </WindowControlRoot>

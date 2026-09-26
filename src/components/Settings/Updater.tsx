@@ -2,7 +2,6 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 import { ProgressInfo } from 'builder-util-runtime';
-import { ipcRenderer } from 'electron';
 
 import { V } from 'util/theming';
 
@@ -27,7 +26,7 @@ const UpdateText = styled.span`
   margin-left: 1rem;
 `;
 
-const restartApp = () => ipcRenderer.send('update-restart');
+const restartApp = () => window.tokelApi.send('update-restart');
 
 const Updater = () => {
   const [update, setUpdate] = React.useState<UpdateInfo>({
@@ -40,37 +39,32 @@ const Updater = () => {
 
   const checkForUpdate = () => {
     setUpdate(u => ({ ...u, error: false, checking: true }));
-    ipcRenderer.send('update-check');
+    window.tokelApi.send('update-check');
   };
 
   React.useEffect(checkForUpdate, []);
 
   React.useEffect(() => {
-    ipcRenderer.on('update-error', payload => {
-      console.log(payload);
-      setUpdate(u => ({ ...u, checking: false, error: true }));
-    });
-    ipcRenderer.on('update-not-available', payload => {
-      console.log(payload);
-      setUpdate(u => ({ ...u, checking: false, error: false, available: false }));
-    });
-    ipcRenderer.on('update-available', () =>
-      setUpdate(u => ({ ...u, checking: false, error: false, available: true }))
-    );
-    ipcRenderer.on('download-progress', (_, payload) =>
-      setUpdate(u => ({ ...u, checking: false, error: false, progress: payload }))
-    );
-    ipcRenderer.on('update-downloaded', () =>
-      setUpdate(u => ({ ...u, checking: false, error: false, downloaded: true }))
-    );
-    // deregister listeners
-    return () => {
-      ipcRenderer.removeAllListeners('update-error');
-      ipcRenderer.removeAllListeners('update-not-available');
-      ipcRenderer.removeAllListeners('update-available');
-      ipcRenderer.removeAllListeners('download-progress');
-      ipcRenderer.removeAllListeners('update-downloaded');
-    };
+    const unsubs = [
+      window.tokelApi.on('update-error', payload => {
+        console.log(payload);
+        setUpdate(u => ({ ...u, checking: false, error: true }));
+      }),
+      window.tokelApi.on('update-not-available', payload => {
+        console.log(payload);
+        setUpdate(u => ({ ...u, checking: false, error: false, available: false }));
+      }),
+      window.tokelApi.on('update-available', () =>
+        setUpdate(u => ({ ...u, checking: false, error: false, available: true }))
+      ),
+      window.tokelApi.on('download-progress', payload =>
+        setUpdate(u => ({ ...u, checking: false, error: false, progress: payload as ProgressInfo }))
+      ),
+      window.tokelApi.on('update-downloaded', () =>
+        setUpdate(u => ({ ...u, checking: false, error: false, downloaded: true }))
+      ),
+    ];
+    return () => unsubs.forEach(fn => fn());
   });
 
   return (

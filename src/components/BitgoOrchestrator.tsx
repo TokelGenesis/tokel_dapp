@@ -2,12 +2,10 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import BN from 'bn.js';
-import { ipcRenderer } from 'electron';
-import log from 'electron-log';
 
 import { dispatch } from 'store/rematch';
 import { selectAccountAddress } from 'store/selectors';
-import { BitgoAction, checkData, sendToBitgo } from 'util/bitgoHelper';
+import { BitgoAction, BitgoMsg, checkData, sendToBitgo } from 'util/bitgoHelper';
 import { getUnixTimestamp } from 'util/helpers';
 import { parseUnspent } from 'util/transactions';
 import { spendSuccess } from 'util/transactionsHelper';
@@ -18,7 +16,7 @@ export const BROKEN_WALLET_MSG =
   'The app could not connect to this wallet. Please report the error and try again later.';
 
 const commonError = err => {
-  log.error(err);
+  console.error(err);
   if (BAD_WALLET_ERRORS.includes(err)) {
     dispatch.environment.SET_LOGIN_FEEDBACK(BROKEN_WALLET_MSG);
   } else {
@@ -32,14 +30,15 @@ const transactionError = err => {
   dispatch.currentTransaction.SET_TX_STATUS(-1);
   dispatch.currentTransaction.SET_TX_ERROR(NspvJSErrorMessages[err] || err);
   dispatch.environment.SET_ERROR(err);
-  log.error(err);
+  console.error(err);
 };
 
 const BitgoOrchestrator = () => {
   const myAddress = useSelector(selectAccountAddress);
 
   React.useEffect(() => {
-    ipcRenderer.on(BITGO_IPC_ID, (_, payload) => {
+    const unsub = window.tokelApi.on(BITGO_IPC_ID, (raw) => {
+      const payload = raw as BitgoMsg;
       console.group('BITGO (ORCHESTRATOR)');
       if (IS_DEV) {
         console.group('BITGO (WORKER -> [MAIN] -> RENDERER)');
@@ -100,7 +99,7 @@ const BitgoOrchestrator = () => {
           console.log('SHOULD BE ERROR');
           dispatch.environment.SET_ERROR(`Bitgo Error (${payload.error})`);
           dispatch.environment.SET_LOGIN_FEEDBACK(null);
-          log.error(payload.error);
+          console.error(payload.error);
           return;
         }
         dispatch.account.login({ data: payload.data });
@@ -190,9 +189,7 @@ const BitgoOrchestrator = () => {
         dispatch.marketplace.SET_OFFERS(payload.data);
       }
     });
-    return () => {
-      ipcRenderer.removeAllListeners(BITGO_IPC_ID);
-    };
+    return unsub;
   }, [myAddress]);
 
   return <div />;

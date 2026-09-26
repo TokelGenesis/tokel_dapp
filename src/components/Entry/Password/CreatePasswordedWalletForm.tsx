@@ -2,7 +2,6 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
-import { encrypt } from 'encryption/core';
 import { dispatch } from 'store/rematch';
 
 import ErrorMessage from 'components/_General/ErrorMessage';
@@ -40,7 +39,7 @@ const CreatePasswordedWalletForm = ({ onSubmit }: CreatePasswordedWalletFormProp
       if (password.length < 8) {
         throw new Error('passwords must be at least 8 characters');
       }
-      await encrypt(walletName, privateKey, password);
+      await window.tokelApi.wallet.encrypt(walletName, privateKey, password);
       await dispatch.account.loadWallets();
       onSubmit(walletName);
       setPrivateKey('');

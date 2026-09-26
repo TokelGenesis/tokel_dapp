@@ -1,9 +1,5 @@
-import { promises as fsp } from 'fs';
-
 import { createModel } from '@rematch/core';
 import dotProp from 'dot-prop-immutable';
-
-import { USER_WALLET_DIR } from 'encryption/core';
 import { TxType, UnspentType } from 'util/nspvlib-mock';
 import { parseBlockchainTransaction, parseSpendTx } from 'util/transactions';
 import { getStillUnconfirmed } from 'util/transactionsHelper';
@@ -99,14 +95,7 @@ export default createModel<RootModel>()({
   },
   effects: dispatch => ({
     async loadWallets() {
-      const files = await fsp.readdir(USER_WALLET_DIR);
-      const wallets = files
-        .filter(r => r.endsWith('.wallet'))
-        .sort()
-        .map(filename => {
-          const name = filename.split('.').slice(0, -1).join('.');
-          return { name, filename };
-        });
+      const wallets = await window.tokelApi.wallet.listWallets();
       dispatch.account.SET_WALLET_FILES(wallets);
     },
     async login({ data }: LoginArgs) {

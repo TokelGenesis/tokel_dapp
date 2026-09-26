@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
-import { decrypt, encrypt } from 'encryption/core';
 import { selectAccountWalletName } from 'store/selectors';
 
 import ErrorMessage from 'components/_General/ErrorMessage';
@@ -39,8 +38,8 @@ const ChangePasswordForm = () => {
       if (newPass === currentPass) {
         throw new Error('new password is unchanged');
       }
-      const privKey = await decrypt(existingWalletName, Buffer.from(currentPass));
-      await encrypt(existingWalletName, privKey.toString(), newPass);
+      const privKey = await window.tokelApi.wallet.decrypt(existingWalletName, currentPass);
+      await window.tokelApi.wallet.encrypt(existingWalletName, privKey, newPass);
       setError(null);
       setSuccess('password successfully set');
       setCurrentPass('');

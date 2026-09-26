@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
-import { ipcRenderer } from 'electron';
 
 import { dispatch } from 'store/rematch';
 import { selectModalName, selectView } from 'store/selectors';
@@ -71,16 +70,12 @@ const Home = () => {
   const modalProps = modals[useSelector(selectModalName)];
 
   React.useEffect(() => {
-    const listener = (_, { view, params }) => {
+    const listener = ({ view, params }: { view: string; params: string }) => {
       dispatch.environment.SET_VIEW(view || ViewType.DASHBOARD);
       if (params) dispatch.environment.SET_DEEP_LINK_PARAMS(params);
     };
 
-    ipcRenderer.on(DEEP_LINK_IPC_ID, listener);
-
-    return () => {
-      ipcRenderer.removeListener(DEEP_LINK_IPC_ID, listener);
-    };
+    return window.tokelApi.on(DEEP_LINK_IPC_ID, listener as (...args: unknown[]) => void);
   }, []);
 
   return (

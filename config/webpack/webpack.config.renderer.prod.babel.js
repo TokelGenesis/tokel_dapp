@@ -21,7 +21,8 @@ DeleteSourceMaps();
 export default merge(baseConfig, {
   ...(process.env.DEBUG_PROD === 'true' ? { devtool: 'source-map' } : {}),
   mode: 'production',
-  target: 'electron-renderer',
+  target: 'web',
+  externals: [],
 
   entry: ['core-js', 'regenerator-runtime/runtime', paths.appIndex],
 
@@ -44,7 +45,17 @@ export default merge(baseConfig, {
     ],
   },
 
+  resolve: {
+    fallback: {
+      buffer: require.resolve('buffer/'),
+    },
+  },
+
   plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       DEBUG_PROD: false,

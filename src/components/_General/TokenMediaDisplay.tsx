@@ -1,7 +1,6 @@
 import React from 'react';
 
 import styled from '@emotion/styled';
-import { ipcRenderer } from 'electron';
 
 import { Responsive, extractIPFSHash } from 'util/helpers';
 import { V } from 'util/theming';
@@ -93,7 +92,7 @@ const TokenMediaDisplay: React.FC<TokenMediaDisplayProps> = ({ url }) => {
   React.useEffect(() => {
     if (mediaShouldLoad) {
       if (ipfsId) {
-        ipcRenderer.send(IPFS_IPC_ID, {
+        window.tokelApi.send(IPFS_IPC_ID, {
           type: IpfsAction.GET,
           payload: {
             ipfsId,
@@ -110,17 +109,14 @@ const TokenMediaDisplay: React.FC<TokenMediaDisplayProps> = ({ url }) => {
 
   // Listen for IPFS files
   React.useEffect(() => {
-    const listener = (_, data) => {
-      if (data.type === IpfsAction.GET && ipfsId) {
-        setMediaUrl(data.payload.filedata);
+    const listener = (data: unknown) => {
+      const msg = data as { type: string; payload: { filedata: string } };
+      if (msg.type === IpfsAction.GET && ipfsId) {
+        setMediaUrl(msg.payload.filedata);
       }
     };
 
-    ipcRenderer.on(IPFS_IPC_ID, listener);
-
-    return () => {
-      ipcRenderer.removeListener(IPFS_IPC_ID, listener);
-    };
+    return window.tokelApi.on(IPFS_IPC_ID, listener);
   }, [ipfsId]);
 
   // Post media to iframe, along with actual iframe width
@@ -182,7 +178,7 @@ const TokenMediaDisplay: React.FC<TokenMediaDisplayProps> = ({ url }) => {
               <TokenMediaIframe
                 height={iframeHeight}
                 ref={iframeRef}
-                src={`file://${__dirname}/externalMedia.html`}
+                src={`file://${window.tokelApi.electronDir}/externalMedia.html`}
                 onLoad={() => {
                   setIframeLoaded(true);
                   setMediaShouldLoad(true);
