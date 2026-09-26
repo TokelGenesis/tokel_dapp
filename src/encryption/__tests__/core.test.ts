@@ -9,8 +9,17 @@ import tar from 'tar-fs';
 
 jest.setTimeout(10 * 60 * 1000);
 
-const mockHome = fs.mkdtempSync(path.join(os.tmpdir(), 'tokel-wallet-test-'));
-jest.mock('os', () => ({ ...jest.requireActual('os'), homedir: () => mockHome }));
+// The factory runs before this file's other statements (jest hoists it), so
+// it must create the temp home itself.
+jest.mock('os', () => {
+  const actual = jest.requireActual('os');
+  const dir = jest.requireActual('fs').mkdtempSync(
+    jest.requireActual('path').join(actual.tmpdir(), 'tokel-wallet-test-')
+  );
+  return { ...actual, homedir: () => dir };
+});
+
+const mockHome = os.homedir();
 
 // eslint-disable-next-line import/first
 import { USER_WALLET_DIR, decrypt, encrypt } from '../core';
@@ -37,6 +46,11 @@ const repack = (dir: string, name: string) =>
   );
 
 afterAll(() => fs.rmSync(mockHome, { recursive: true, force: true }));
+
+it('uses an isolated temp home', () => {
+  expect(mockHome.startsWith(os.tmpdir())).toBe(true);
+  expect(USER_WALLET_DIR).toBe(path.join(mockHome, '.tokel-wallets'));
+});
 
 describe('wallet encryption', () => {
   it('round-trips and rejects a wrong password', async () => {
