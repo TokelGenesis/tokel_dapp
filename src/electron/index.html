@@ -6,6 +6,15 @@
     <script>
       (() => {
         if (process?.env?.NODE_ENV !== 'development') {
+          // Restrict what the packaged app can load/connect to. Applied only in
+          // production because dev serves the renderer over http://localhost.
+          // This runs before the body <script> is parsed, so it covers it.
+          const csp = document.createElement('meta');
+          csp.httpEquiv = 'Content-Security-Policy';
+          csp.content =
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-src 'self';";
+          document.getElementsByTagName('head')[0].appendChild(csp);
+
           const link = document.createElement('link');
           link.rel = 'stylesheet';
           link.href = './dist/style.css';

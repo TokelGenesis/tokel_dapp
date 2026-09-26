@@ -1,5 +1,9 @@
 <html>
   <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src https: data:; media-src https: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src https:;"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <style>
       html,
@@ -61,66 +65,88 @@
     </style>
     <script type="text/javascript">
       window.onload = function () {
+        const wrapper = window.document.getElementById('mediaWrapper');
+
+        // Media URLs come from on-chain token data, which anyone can write.
+        // Only ever load https or data: URLs, and never build markup from the
+        // URL string (which would allow HTML/attribute injection) - create the
+        // element and assign .src, which cannot break out into markup.
+        const isSafeMediaUrl = url => {
+          try {
+            const scheme = new URL(url).protocol;
+            return scheme === 'https:' || scheme === 'data:';
+          } catch (e) {
+            return false;
+          }
+        };
+
+        const showSpinner = () => {
+          wrapper.replaceChildren();
+          const loading = window.document.createElement('div');
+          loading.className = 'loading';
+          const inner = window.document.createElement('div');
+          inner.appendChild(window.document.createElement('span'));
+          loading.appendChild(inner);
+          wrapper.appendChild(loading);
+        };
+
+        const renderMedia = (tag, mediaUrl) => {
+          wrapper.replaceChildren();
+          const el = window.document.createElement(tag);
+          el.setAttribute('width', '100%');
+          el.setAttribute('height', 'auto');
+          if (tag === 'video') {
+            el.muted = true;
+            el.autoplay = true;
+            el.loop = true;
+            el.controls = true;
+          } else if (tag === 'audio') {
+            el.controls = true;
+          }
+          el.src = mediaUrl;
+          wrapper.appendChild(el);
+        };
+
         window.addEventListener(
           'message',
           async event => {
-            console.group('Rendering External Media');
             const mediaUrl = event.data.mediaUrl;
             const width = event.data.width;
 
-            console.log('Received message. Width:', width, 'Media URL:', mediaUrl);
-
-            let mediaType = mediaUrl?.includes(';base64,')
-              ? mediaUrl?.split(';base64,')[0].replace('data:', '')
-              : undefined;
-
-            window.document.getElementById('mediaWrapper').style.maxWidth =
-              width > 0 ? `${width}px` : undefined;
-
-            console.groupEnd();
+            wrapper.style.maxWidth = width > 0 ? `${width}px` : undefined;
 
             if (!mediaUrl || !mediaUrl.length) {
-              window.document.getElementById(
-                'mediaWrapper'
-              ).innerHTML = `<div class="loading"><div><span /></div></div>`;
-              console.group('Rendering External Media');
-              console.log('No media passed. Spinning');
-              console.groupEnd();
-            } else {
-              try {
-                mediaType = (await fetch(mediaUrl, { method: 'HEAD' })).headers
+              showSpinner();
+              return;
+            }
+
+            if (!isSafeMediaUrl(mediaUrl)) {
+              wrapper.replaceChildren();
+              return;
+            }
+
+            try {
+              let mediaType = (await fetch(mediaUrl, { method: 'HEAD' })).headers
+                .get('content-type')
+                ?.split('/')?.[0];
+
+              if (!mediaType)
+                mediaType = (await fetch(mediaUrl, { method: 'GET' })).headers
                   .get('content-type')
                   ?.split('/')?.[0];
 
-                if (!mediaType)
-                  mediaType = (await fetch(mediaUrl, { method: 'GET' })).headers
-                    .get('content-type')
-                    ?.split('/')?.[0];
-
-                console.group('Rendering External Media');
-                console.log('Media Type', mediaType);
-                console.groupEnd();
-
-                if (mediaType?.includes('image')) {
-                  window.document.getElementById(
-                    'mediaWrapper'
-                  ).innerHTML = `<img width="100%" height="auto" src="${mediaUrl}" />`;
-                } else if (mediaType?.includes('video')) {
-                  window.document.getElementById(
-                    'mediaWrapper'
-                  ).innerHTML = `<video width="100%" height="auto" mute autoplay loop controls style="outline: none;"><source src="${mediaUrl}" /></video>`;
-                } else if (mediaType?.includes('audio')) {
-                  window.document.getElementById(
-                    'mediaWrapper'
-                  ).innerHTML = `<audio width="100%" height="auto" controls style="outline: none;"><source src="${mediaUrl}" /></audio>`;
-                } else {
-                  // Its not media, so hide loader
-                  window.document.getElementById('mediaWrapper').innerHTML = ``;
-                }
-              } catch (error) {
-                console.error(error);
-                window.document.getElementById('mediaWrapper').innerHTML = ``;
+              if (mediaType?.includes('image')) {
+                renderMedia('img', mediaUrl);
+              } else if (mediaType?.includes('video')) {
+                renderMedia('video', mediaUrl);
+              } else if (mediaType?.includes('audio')) {
+                renderMedia('audio', mediaUrl);
+              } else {
+                wrapper.replaceChildren();
               }
+            } catch (error) {
+              console.error(error);
+              wrapper.replaceChildren();
             }
           },
           false

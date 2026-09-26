@@ -181,10 +181,30 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
-  // Open urls in the user's browser
-  mainWindow.webContents.on('new-window', (event, url) => {
-    event.preventDefault();
-    shell.openExternal(url);
+  // Open external links in the user's browser, but only https - never let
+  // on-chain content open file:, tokel:, javascript: or other schemes.
+  const openExternalIfSafe = (url: string) => {
+    try {
+      if (new URL(url).protocol === 'https:') {
+        shell.openExternal(url);
+      }
+    } catch (e) {
+      // ignore malformed URLs
+    }
+  };
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openExternalIfSafe(url);
+    return { action: 'deny' };
+  });
+
+  // The renderer should never navigate away from the bundled app. Block any
+  // in-place navigation and route external https links to the browser instead.
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('file://')) {
+      event.preventDefault();
+      openExternalIfSafe(url);
+    }
   });
 
   mainWindow.on('close', () => {
@@ -236,11 +256,15 @@ autoUpdater.on('update-downloaded', data => {
 app.on('open-url', (_, url) => {
   if (url.startsWith(DEEP_LINK_PROTOCOL)) {
     console.log('RECEIVED DEEP LINK:', url);
-    const urlObj = new URL(url);
-    mainWindow.webContents.send(DEEP_LINK_IPC_ID, {
-      view: urlObj.hostname,
-      params: urlObj.search,
-    });
+    try {
+      const urlObj = new URL(url);
+      mainWindow?.webContents.send(DEEP_LINK_IPC_ID, {
+        view: urlObj.hostname,
+        params: urlObj.search,
+      });
+    } catch (e) {
+      console.error('Ignoring malformed deep link');
+    }
   }
 });
 
