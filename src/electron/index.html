@@ -4,8 +4,11 @@
     <meta charset="utf-8" />
     <title>Tokel Platform</title>
     <script>
+      // The renderer has no `process` (contextIsolation + sandbox); main passes
+      // the environment in the query string instead.
+      window.__TOKEL_ENV__ = new URLSearchParams(window.location.search).get('env') || 'production';
       (() => {
-        if (process?.env?.NODE_ENV !== 'development') {
+        if (window.__TOKEL_ENV__ !== 'development') {
           // Restrict what the packaged app can load/connect to. Applied only in
           // production because dev serves the renderer over http://localhost.
           // This runs before the body <script> is parsed, so it covers it.
@@ -29,13 +32,13 @@
     <script>
       const scripts = [];
 
-      if (process.env.NODE_ENV === 'development') {
+      if (window.__TOKEL_ENV__ === 'development') {
         // Dynamically insert the DLL script in development env in the
         // renderer process
         scripts.push('../../config/dll/renderer.dev.dll.js');
 
         // Dynamically insert the bundled app script in the renderer process
-        const port = process.env.PORT || 1212;
+        const port = new URLSearchParams(window.location.search).get('port') || 1212;
         scripts.push(`http://localhost:${port}/dist/renderer.dev.js`);
       } else {
         scripts.push('./dist/renderer.js');

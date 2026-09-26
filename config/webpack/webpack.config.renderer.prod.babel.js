@@ -18,9 +18,12 @@ import moduleFactory from './webpack.config.renderer.module.babel';
 CheckNodeEnv('production');
 DeleteSourceMaps();
 
-// The renderer has no require(); bundle everything instead of inheriting base externals.
+// The renderer has no require() or `module`: bundle everything instead of
+// inheriting the base externals, and don't emit a commonjs2 export.
+const { libraryTarget, ...rendererOutput } = baseConfig.output;
+
 export default merge(
-  { ...baseConfig, externals: [] },
+  { ...baseConfig, externals: [], output: rendererOutput },
   {
     ...(process.env.DEBUG_PROD === 'true' ? { devtool: 'source-map' } : {}),
     mode: 'production',

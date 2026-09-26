@@ -27,8 +27,12 @@ const AppRoot = styled.div`
 
 const fetchTokelPrice = async () => {
   try {
-    const priceJson = await axios(TOKEL_PRICE_URL);
-    dispatch.environment.SET_TOKEL_PRICE_USD(priceJson.data[0]?.price);
+    const priceJson = await axios(TOKEL_PRICE_URL, { timeout: 10000 });
+    const price = Number(priceJson.data?.[0]?.price);
+    // The feed is a remote, unauthenticated source: ignore anything that isn't a sane price.
+    if (Number.isFinite(price) && price > 0 && price < 1e6) {
+      dispatch.environment.SET_TOKEL_PRICE_USD(price);
+    }
   } catch (e) {
     console.log(e);
   }
