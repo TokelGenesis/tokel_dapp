@@ -489,7 +489,11 @@ class BitgoSingleton {
   }
 }
 
-let network = IS_DEV ? networks.TKLTEST2 : networks.TOKEL;
+// @tokel/nspv-js 0.1.9 ships offline peers (192.99.71.125, 135.125.204.169) and protocol
+// 170010, which tokeld 0.3.4 refuses (minimum 170011). Override until a fixed package is
+// published (fixed upstream in nspv-js revival 9bee5fd).
+const TOKEL = { ...networks.TOKEL, protocolVersion: 170011, staticPeers: ['94.130.38.173:29404', '136.243.144.90:29404'] };
+let network = IS_DEV ? networks.TKLTEST2 : TOKEL;
 let bitgo = new BitgoSingleton(network);
 
 const checkData = msg => {
@@ -511,7 +515,7 @@ parentPort.on('message', msg => {
   if (msg.type === BitgoAction.SET_NETWORK) {
     bitgo.cleanup();
     network = {
-      ...networks[msg.payload.network],
+      ...(msg.payload.network === 'TOKEL' ? TOKEL : networks[msg.payload.network]),
       ...msg.payload.overrides,
     };
     bitgo = new BitgoSingleton(network);
