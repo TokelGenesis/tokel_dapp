@@ -519,13 +519,6 @@ bignumber.js@^9.0.1:
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.2.tgz#71c6c6bed38de64e24a65ebe16cfcf23ae693673"
   integrity sha512-GAcQvbpsM0pUb0zw1EI0KhQEZ+lRwR5fYaAp3vPOYuP7aDvGy6cVN6XHLauvF8SOga2y0dcLcjt3iQDTSEliyw==
 
-bindings@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
-  integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
-  dependencies:
-    file-uri-to-path "1.0.0"
-
 bip39@^2.3.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/bip39/-/bip39-2.6.0.tgz#9e3a720b42ec8b3fbe4038f1e445317b6a99321c"
@@ -1201,11 +1194,6 @@ fast-write-atomic@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/fast-write-atomic/-/fast-write-atomic-0.2.1.tgz#7ee8ef0ce3c1f531043c09ae8e5143361ab17ede"
   integrity sha512-WvJe06IfNYlr+6cO3uQkdKdy3Cb1LlCJSF8zRs2eT8yuhdbSlR9nIt+TgQ92RUxiRrQm+/S7RARnMfCs5iuAjw==
-
-file-uri-to-path@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
-  integrity sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==
 
 fnv1a@^1.0.1:
   version "1.0.1"
@@ -2716,11 +2704,6 @@ mutable-proxy@^1.0.0:
   resolved "https://registry.yarnpkg.com/mutable-proxy/-/mutable-proxy-1.0.0.tgz#3c6e6f9304c2e5a4751bb65b5a66677de9bcf3c8"
   integrity sha512-4OvNRr1DJpy2QuDUV74m+BWZ//n4gG4bmd21MzDSPqHEidIDWqwyOjcadU1LBMO3vXYGurVKjfBrxrSQIHFu9A==
 
-nan@^2.14.0:
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.15.0.tgz#3f34a473ff18e15c1b5626b62903b5ad6e665fee"
-  integrity sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ==
-
 nanoassert@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/nanoassert/-/nanoassert-2.0.0.tgz#a05f86de6c7a51618038a620f88878ed1e490c09"
@@ -3206,18 +3189,14 @@ sax@>=0.1.1:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-secp256k1@^3.5.2:
+secp256k1@^3.5.2, "secp256k1@file:./vendor/secp256k1":
   version "3.8.1"
-  resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-3.8.1.tgz#b62a62a882d6b16f9b51fe599c6b3a861e36c59f"
-  integrity sha512-tArjQw2P0RTdY7QmkNehgp6TVvQXq6ulIhxv8gaH6YubKG/wxxAoNKcbuXjDhybbc+b2Ihc7e0xxiGN744UIiQ==
   dependencies:
-    bindings "^1.5.0"
     bip66 "^1.1.5"
     bn.js "^4.11.8"
     create-hash "^1.2.0"
     drbg.js "^1.0.1"
     elliptic "^6.5.7"
-    nan "^2.14.0"
     safe-buffer "^5.1.2"
 
 set-delayed-interval@^1.0.0:
