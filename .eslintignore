@@ -41,3 +41,6 @@ __snapshots__
 
 # ehmmm, fix laterz ?
 src/vars/styles/variables.css
+
+# Vendored third-party code (kept byte-for-byte as published)
+src/electron/vendor
