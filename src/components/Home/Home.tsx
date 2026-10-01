@@ -123,6 +123,7 @@ const Home = () => {
           <h1>{t(TITLES[currentView as string] ?? 'menu.wallet')}</h1>
           <ButtonSmall
             theme={Colors.TRANSPARENT}
+            data-tid="feedback"
             onClick={() => dispatch.environment.SET_MODAL_NAME(ModalName.FEEDBACK)}
           >
             {t('nav.feedback')}
@@ -131,7 +132,7 @@ const Home = () => {
         <ViewWrapper>{renderView(currentView)}</ViewWrapper>
       </Main>
       {modalProps && (
-        <Modal size={modalProps.size} title={modalProps.title}>
+        <Modal size={modalProps.size} title={t(modalProps.title)}>
           {modalProps.component}
         </Modal>
       )}

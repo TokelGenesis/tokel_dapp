@@ -1,28 +1,97 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { css } from '@emotion/react';
+import styled from '@emotion/styled';
 import Tippy from '@tippyjs/react';
 
 import InfoIcon from 'assets/HelperInfoCircle.svg';
 import times from 'assets/times.svg';
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectTokenDetails } from 'store/selectors';
 import links from 'util/links';
-import { V } from 'util/theming';
 import { OrderDetailLite } from 'util/token-types';
 import { ModalName, TICKER } from 'vars/defines';
 
 import Icon from 'components/_General/_UIElements/Icon';
 import ExplorerLink from 'components/_General/ExplorerLink';
-import { Column, Columns } from 'components/_General/Grid';
 import OpenInExplorer from 'components/_General/OpenInExplorer';
 
-const orderIDExplainer =
-  "This identifies the order in the blockchain. It's not the same as the token ID of the asset you're buying or selling. You can send this order ID to someone and they can fulfill the order and complete the trade.";
+export const OrderRow = styled.div`
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: var(--tg-radius);
+  background: var(--tg-surface-2);
+  border: 1px solid var(--tg-separator);
+  p {
+    margin: 0;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .name {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .name.loading {
+    width: 140px;
+    height: 16px;
+    border-radius: var(--tg-radius-s);
+    background: var(--tg-fill);
+  }
+  .math {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--tg-text-2);
+    font-variant-numeric: tabular-nums;
+  }
+`;
+
+export const SideTag = styled.span<{ side: 'sell' | 'buy' }>`
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: ${p => (p.side === 'sell' ? 'var(--tg-danger)' : 'var(--tg-success)')};
+  background: ${p => (p.side === 'sell' ? 'var(--tg-danger-soft)' : 'var(--tg-success-soft)')};
+`;
+
+const CancelButton = styled.button`
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  &:hover {
+    background: var(--tg-danger-soft);
+  }
+`;
+
+const IdLabel = styled.span`
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--tg-text-3);
+`;
 
 const ActiveOrderWidget = ({ order }: { order: OrderDetailLite }) => {
+  const t = useT();
   const tokenDetails = useSelector(selectTokenDetails);
+  const name = tokenDetails[order.tokenid]?.name;
+  const isSell = order.funcid === 's';
 
   const handleCancelOrder = () => {
     dispatch.environment.SET_MODAL({
@@ -32,105 +101,48 @@ const ActiveOrderWidget = ({ order }: { order: OrderDetailLite }) => {
   };
 
   return (
-    <div
-      css={css`
-        background-color: ${V.color.backSoftest};
-        border-radius: ${V.size.borderRadius};
-        margin-bottom: 25px;
-        padding-left: 15px;
-        padding-right: 15px;
-
-        p {
-          margin: 0;
-        }
-      `}
-    >
-      <Columns multiline>
-        <Column size={10}>
-          <p
-            css={css`
-              display: flex;
-              align-items: center;
-            `}
-          >
-            <span
-              css={css`
-                text-transform: uppercase;
-                color: ${order.funcid === 's' ? V.color.danger : V.color.success};
-                font-weight: bold;
-                font-size: 20px;
-                padding-left: 8px;
-              `}
-            >
-              {order.funcid === 's' ? 'SELL' : 'BUY'}
-            </span>
-            <span
-              css={css`
-                margin-left: 8px;
-                margin-right: 8px;
-                font-size: 20px;
-                overflow-x: hidden;
-                text-overflow: ellipsis;
-
-                ${!tokenDetails[order.tokenid] &&
-                `
-                  height: 20px;
-                  width: 140px;
-                  background-color: ${V.color.back};
-                  border-radius: ${V.size.borderRadius};
-                `}
-              `}
-            >
-              {tokenDetails[order.tokenid]?.name}
-            </span>
-            <OpenInExplorer inline link={links.explorers[TICKER](`tokens/${order.tokenid}`)} />
-          </p>
-          <p
-            css={css`
-              color: ${V.color.frontSoft};
-              padding-left: 8px;
-            `}
-          >
-            {order.funcid === 's'
-              ? `${order.askamount} units x ${order.price} ${TICKER} = ${order.totalrequired} ${TICKER}`
-              : `${order.totalrequired} units x ${order.price} ${TICKER} = ${order.bidamount} ${TICKER}`}
-          </p>
-        </Column>
-        <Column size={2}>
-          <Icon
-            icon={times}
-            color="front"
-            width={15}
-            onClick={handleCancelOrder}
-            css={css`
-              margin-left: auto;
-              cursor: pointer;
-            `}
-          />
-        </Column>
-        <Column size={12}>
-          <span
-            css={css`
-              font-size: ${V.font.pSmall};
-              color: ${V.color?.frontOp[50]};
-              display: flex;
-              align-items: center;
-              margin-bottom: 2px;
-
-              ${Icon} {
-                margin-left: 5px;
-              }
-            `}
-          >
-            Order ID
-            <Tippy content={orderIDExplainer} arrow>
-              <Icon icon={InfoIcon} color="gradient" width={12} height={12} className="icon" />
-            </Tippy>
-          </span>
-          <ExplorerLink txid={order.txid} noLink />
-        </Column>
-      </Columns>
-    </div>
+    <OrderRow data-tid="mk-order">
+      <div className="head">
+        <SideTag side={isSell ? 'sell' : 'buy'}>{t(isSell ? 'mk.sideSell' : 'mk.sideBuy')}</SideTag>
+        <span className={name ? 'name' : 'name loading'}>{name}</span>
+        <OpenInExplorer
+          inline
+          width="14px"
+          link={links.explorers[TICKER](`tokens/${order.tokenid}`)}
+        />
+        <CancelButton
+          type="button"
+          aria-label={t('mk.cancel')}
+          title={t('mk.cancel')}
+          data-tid="mk-order-cancel"
+          onClick={handleCancelOrder}
+        >
+          <Icon icon={times} color="front" width={12} height={12} />
+        </CancelButton>
+      </div>
+      <p className="math">
+        {isSell
+          ? t('mk.units', {
+              n: order.askamount,
+              price: order.price,
+              total: order.totalrequired,
+              ticker: TICKER,
+            })
+          : t('mk.units', {
+              n: order.totalrequired,
+              price: order.price,
+              total: order.bidamount,
+              ticker: TICKER,
+            })}
+      </p>
+      <IdLabel>
+        {t('mk.orderId')}
+        <Tippy content={t('mk.orderIdTip')} arrow>
+          <Icon icon={InfoIcon} color="gradient" width={12} height={12} />
+        </Tippy>
+      </IdLabel>
+      <ExplorerLink txid={order.txid} noLink />
+    </OrderRow>
   );
 };
 

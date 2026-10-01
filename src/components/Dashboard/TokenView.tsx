@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { selectCurrentTokenDetail } from 'store/selectors';
 import { ResourceType } from 'vars/defines';
 
@@ -23,16 +24,17 @@ const TokenViewRoot = styled.div`
 `;
 
 const TokenView = (): React.ReactElement => {
+  const t = useT();
   const tokenInfo = useSelector(selectCurrentTokenDetail);
   const isNFT = tokenInfo?.supply === 1;
 
   return (
     <TokenViewRoot>
       <TokenDetailWidget />
-      <StandardWidget title="Transfers" width={2}>
+      <StandardWidget title={t('tv.transfers')} width={2}>
         <TransferEmbed />
       </StandardWidget>
-      <StandardWidget title={isNFT ? 'History' : 'Activity'} width={3}>
+      <StandardWidget title={isNFT ? t('tv.history') : t('dash.activity')} width={3}>
         <ActivityListEmbed
           transactions={[]}
           resourceType={isNFT ? ResourceType.NFT : ResourceType.FST}

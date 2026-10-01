@@ -2,6 +2,7 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
+import pressable from 'util/pressable';
 import { Colors } from 'vars/defines';
 
 import CopyToClipboard from './CopyToClipboard';
@@ -10,6 +11,7 @@ type CopyProps = {
   textToCopy: string;
   label?: string;
   onClick?: () => void;
+  tid?: string;
 };
 
 const TextInput = styled.div`
@@ -43,7 +45,7 @@ const TextWrapper = styled.p`
   user-select: text;
   &:hover {
     color: var(--tg-accent-text);
-    ${p => (p.onClick ? 'cursor: pointer' : '')}
+    ${p => (p.role === 'button' ? 'cursor: pointer' : '')}
   }
 `;
 
@@ -54,12 +56,14 @@ const TextLabel = styled.p`
   margin: 0 0 3px;
 `;
 
-const CopyTextInput = ({ textToCopy, label, onClick }: CopyProps) => {
+const CopyTextInput = ({ textToCopy, label, onClick, tid }: CopyProps) => {
   return (
     <TextInput>
       {label && <TextLabel>{label}</TextLabel>}
       <CopyWrapper>
-        <TextWrapper onClick={onClick}>{textToCopy}</TextWrapper>
+        <TextWrapper data-tid={tid} {...pressable(onClick)}>
+          {textToCopy}
+        </TextWrapper>
         <CopyToClipboard color={Colors.WHITE} textToCopy={textToCopy} />
       </CopyWrapper>
     </TextInput>

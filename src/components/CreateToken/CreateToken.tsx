@@ -6,8 +6,8 @@ import infoIcon from 'assets/friendlyWarning.svg';
 import nftIcon from 'assets/Star.svg';
 import tokenIcon from 'assets/Token-alt.svg';
 import tokenMenuIcon from 'assets/Token.svg';
+import { useT } from 'i18n';
 import { Responsive } from 'util/helpers';
-import { V } from 'util/theming';
 import TokenType from 'util/types/TokenType';
 
 import { Box, Layout } from 'components/_General/_UIElements/common';
@@ -16,175 +16,149 @@ import { Column } from 'components/_General/Grid';
 import CreateTokenForm from './Form';
 
 const HelperWidget = styled(Box)`
-  height: 215px;
-  min-height: 215px;
-  max-height: 215px;
-  margin-bottom: 18px;
-
-  p {
-    flex-grow: 2;
-    margin-top: 0;
-    color: ${V.color.frontSoft};
-    align-self: flex-start;
-  }
-
+  height: auto;
+  margin-bottom: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--tg-surface-2);
   img {
-    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
   }
-
   h2 {
-    margin-right: auto;
+    margin: 0 0 4px;
+    font-size: 14px;
+  }
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--tg-text-2);
   }
 `;
 
-const TokenTypeWidget = styled(Box)`
-  & > div {
-    cursor: pointer;
-    text-align: center;
-    width: 100%;
-    outline: none;
+// the two kinds as selectable cards
+const TokenTypeWidget = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  ${Responsive.below.L} {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
 
-    ${Responsive.below.L} {
-      width: 50%;
-    }
-
-    .icon {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    &:hover,
-    &[data-selected='true'] {
-      .icon {
-        background: var(--gradient-purple-horizontal);
-      }
-
-      h2 {
-        color: ${V.color.front};
-      }
-    }
-
-    h2 {
-      color: ${V.color.frontSoft};
-      margin-top: 5px;
-    }
+const TypeCard = styled.button<{ selected: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  text-align: left;
+  border-radius: var(--tg-radius-l);
+  border: 1px solid ${p => (p.selected ? 'var(--tg-accent)' : 'var(--tg-separator)')};
+  background: ${p => (p.selected ? 'var(--tg-accent-soft)' : 'var(--tg-surface)')};
+  box-shadow: ${p => (p.selected ? '0 0 0 3px var(--tg-focus)' : 'var(--tg-shadow-1)')};
+  color: var(--tg-text);
+  transition: background 0.15s ease, border-color 0.15s ease;
+  &:hover {
+    border-color: var(--tg-accent);
+  }
+  .ic {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: ${p => (p.selected ? 'var(--tg-accent)' : 'var(--tg-fill)')};
+  }
+  .ic div {
+    background: ${p => (p.selected ? 'var(--tg-on-accent)' : 'var(--tg-text-2)')} !important;
+  }
+  b {
+    font-size: 14px;
+    font-weight: 600;
   }
 `;
 
 const FormBox = styled(Box)`
-  padding: 18px;
+  padding: 20px;
   .no-state {
     text-align: center;
-
+    max-width: 360px;
     h2 {
-      margin-bottom: 0;
+      margin: 12px 0 4px;
+      font-size: 17px;
     }
-
     h3 {
-      margin-top: 5px;
-      color: ${V.color.frontSoft};
+      margin: 0;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--tg-text-2);
     }
-
     .icon {
       margin-left: auto;
       margin-right: auto;
-      background: var(--gradient-purple-horizontal);
     }
   }
 `;
 
-const TokenTypeOption: React.FC<{
-  action: () => void;
-  selected: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon: any;
-  title: string;
-}> = ({ action, selected, icon, title }) => (
-  <div role="button" tabIndex={0} onClick={action} onKeyDown={action} data-selected={selected}>
-    <Icon icon={icon} color="frontSoft" className="icon" />
-    <h2>{title}</h2>
-  </div>
-);
-
 const CreateToken: React.FC = () => {
+  const t = useT();
   const [typeSelected, setTypeSelected] = React.useState<TokenType | null>(null);
 
-  const form = React.useMemo(() => {
-    switch (typeSelected) {
-      case TokenType.NFT:
-      case TokenType.TOKEN:
-        return <CreateTokenForm tokenType={typeSelected} />;
-      case null:
-      default:
-        return (
-          <div className="no-state">
-            <Icon icon={tokenMenuIcon} color="frontSoft" className="icon" />
-            <h2>Let&apos;s create a token!</h2>
-            <h3>To get started, first select what kind of token you wish to create</h3>
-          </div>
-        );
-    }
-  }, [typeSelected]);
+  const form =
+    typeSelected === TokenType.NFT || typeSelected === TokenType.TOKEN ? (
+      <CreateTokenForm tokenType={typeSelected} />
+    ) : (
+      <div className="no-state">
+        <Icon icon={tokenMenuIcon} color="gradient" className="icon" height={40} width={40} />
+        <h2>{t('tok.startTitle')}</h2>
+        <h3>{t('tok.startText')}</h3>
+      </div>
+    );
 
-  const helperText = React.useMemo(() => {
-    switch (typeSelected) {
-      case TokenType.NFT:
-        return (
-          <>
-            <h2>About NFTs</h2>
-            <p>
-              After your NFT is created, your wallet will receive the only unit of it. You&apos;ll
-              be able to send it to other wallets or list it on the NFT marketplace.
-            </p>
-          </>
-        );
-      case TokenType.TOKEN:
-        return (
-          <>
-            <h2>About Fungible Tokens</h2>
-            <p>
-              You can use fungible tokens to represent ownership of a shared asset, equity of a
-              project, membership of a community, or just about anything you can think of.
-            </p>
-          </>
-        );
-      case null:
-      default:
-        return (
-          <>
-            <h2>Not sure what to select?</h2>
-            <p>
-              To represent full ownership of a single virtual or physical asset, select NFT. For
-              other use cases, select fungible token.
-            </p>
-          </>
-        );
-    }
-  }, [typeSelected]);
-
-  const selectNFT = () => setTypeSelected(TokenType.NFT);
-  const selectToken = () => setTypeSelected(TokenType.TOKEN);
+  const [title, text] =
+    typeSelected === TokenType.NFT
+      ? [t('tok.aboutNft'), t('tok.aboutNftText')]
+      : typeSelected === TokenType.TOKEN
+      ? [t('tok.aboutToken'), t('tok.aboutTokenText')]
+      : [t('tok.unsure'), t('tok.unsureText')];
 
   return (
     <Layout gapless>
       <Column size={4} vertical>
-        <HelperWidget flex>
-          <img alt="info" src={infoIcon} />
-          {helperText}
+        <HelperWidget>
+          <img alt="" src={infoIcon} />
+          <div>
+            <h2>{title}</h2>
+            <p>{text}</p>
+          </div>
         </HelperWidget>
-        <TokenTypeWidget flex>
-          <TokenTypeOption
-            action={selectNFT}
-            selected={typeSelected === TokenType.NFT}
-            title="NFT"
-            icon={nftIcon}
-          />
-          <TokenTypeOption
-            action={selectToken}
-            selected={typeSelected === TokenType.TOKEN}
-            title="Fungible Token"
-            icon={tokenIcon}
-          />
+        <TokenTypeWidget>
+          {[
+            { type: TokenType.NFT, label: t('tok.nft'), icon: nftIcon, tid: 'create-nft' },
+            {
+              type: TokenType.TOKEN,
+              label: t('tok.fungible'),
+              icon: tokenIcon,
+              tid: 'create-token',
+            },
+          ].map(o => (
+            <TypeCard
+              key={o.type}
+              type="button"
+              selected={typeSelected === o.type}
+              aria-pressed={typeSelected === o.type}
+              data-tid={o.tid}
+              onClick={() => setTypeSelected(o.type)}
+            >
+              <span className="ic">
+                <Icon icon={o.icon} color="frontSoft" height={20} width={20} />
+              </span>
+              <b>{o.label}</b>
+            </TypeCard>
+          ))}
         </TokenTypeWidget>
       </Column>
       <Column>

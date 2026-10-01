@@ -43,6 +43,8 @@ const ipfsNode = require('./ipfsHelper');
 // loading BitGo and Wasm Cryptoconditions in a separate process
 const workerPath = path.join(app.getAppPath(), 'worker.js');
 const bitgoWorker = new Worker(workerPath);
+// without a handler, a worker failure becomes an error box in the main process that freezes the app
+bitgoWorker.on('error', e => console.error('wallet worker error', e));
 bitgoWorker.postMessage({ type: BitgoAction.RECONNECT });
 export default class AppUpdater {
   constructor() {

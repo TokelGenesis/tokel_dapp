@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectModalOptions, selectOrderDetails, selectTokenDetails } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
-import { V } from 'util/theming';
 import { Colors, FEE, ModalName, TICKER } from 'vars/defines';
 
 import { CenteredButtonWrapper } from 'components/_General/_UIElements/common';
@@ -18,18 +18,14 @@ import AssetWidget from './common/AssetWidget';
 import KeyValueDisplay from './common/KeyValueDisplay';
 
 const WarningWrapper = styled.div`
-  margin-top: 15px;
-  padding: 18px;
-  border-radius: ${V.size.borderRadius};
-  background-color: ${V.color.backHard};
-  margin-bottom: 20px;
-
-  & > [WarningCritical] {
-    margin-bottom: none;
+  margin: 4px 0 18px;
+  & > div {
+    max-width: none;
   }
 `;
 
 const ConfirmOrderModal: React.FC = () => {
+  const t = useT();
   const formValues = useSelector(selectModalOptions) as Record<string, unknown>;
   const orderDetails = useSelector(selectOrderDetails);
   const tokenDetails = useSelector(selectTokenDetails);
@@ -96,26 +92,27 @@ const ConfirmOrderModal: React.FC = () => {
     [myOrderSide]
   );
 
-  const buttonLabel =
+  const buttonLabel = t(
     formValues.type === 'ask'
-      ? 'Post sell order'
+      ? 'mk.postSell'
       : formValues.type === 'bid'
-      ? 'Post bid order'
+      ? 'mk.postBid'
       : currentOrderType === 'ask'
-      ? 'Confirm purchase'
+      ? 'mk.confirmBuy'
       : currentOrderType === 'bid'
-      ? 'Confirm sale'
-      : 'Confirm order';
+      ? 'mk.confirmSale'
+      : 'mk.confirm'
+  );
 
   return (
     <div
       css={css`
-        padding-left: 90px;
-        padding-right: 90px;
+        max-width: 560px;
+        margin: 0 auto;
       `}
     >
       <KeyValueDisplay>
-        <span>Asset</span>
+        <span>{t('mk.lblAsset')}</span>
         <AssetWidget asset={currentTokenDetails} />
       </KeyValueDisplay>
 
@@ -128,15 +125,15 @@ const ConfirmOrderModal: React.FC = () => {
       >
         <Column size={3}>
           <KeyValueDisplay color={orderSide === 'bid' ? Colors.SUCCESS : Colors.DANGER}>
-            <span>Order Type</span>
-            <p>{orderSide === 'bid' ? 'Bid (Purchase)' : 'Ask (Sale)'}</p>
+            <span>{t('mk.lblType')}</span>
+            <p>{t(orderSide === 'bid' ? 'mk.typeBid' : 'mk.typeAsk')}</p>
           </KeyValueDisplay>
         </Column>
 
         {Boolean(formValues.orderId) && (
           <Column size={9}>
             <KeyValueDisplay>
-              <span>Order ID</span>
+              <span>{t('mk.orderId')}</span>
               <p>{formValues.orderId}</p>
             </KeyValueDisplay>
           </Column>
@@ -144,14 +141,14 @@ const ConfirmOrderModal: React.FC = () => {
 
         <Column size={isFilling ? 4 : 3}>
           <KeyValueDisplay>
-            <span>Amount</span>
+            <span>{t('mk.lblAmount')}</span>
             <p>{formValues.quantity}</p>
           </KeyValueDisplay>
         </Column>
 
         <Column size={isFilling ? 4 : 3}>
           <KeyValueDisplay>
-            <span>Unit Price</span>
+            <span>{t('mk.lblUnit')}</span>
             <p>
               {formValues.price} {TICKER}
             </p>
@@ -160,7 +157,7 @@ const ConfirmOrderModal: React.FC = () => {
 
         <Column size={isFilling ? 4 : 3}>
           <KeyValueDisplay>
-            <span>Total</span>
+            <span>{t('mk.lblTotal')}</span>
             <p>
               {(formValues.price as number) * (formValues.quantity as number)} {TICKER}
             </p>
@@ -169,7 +166,7 @@ const ConfirmOrderModal: React.FC = () => {
 
         <Column size={4}>
           <KeyValueDisplay>
-            <span>Royalty</span>
+            <span>{t('mk.lblRoyalty')}</span>
             <p>
               {currentTokenDetails?.dataAsJson?.royalty / 10 || 0}% {TICKER}
             </p>
@@ -178,7 +175,7 @@ const ConfirmOrderModal: React.FC = () => {
 
         <Column size={4}>
           <KeyValueDisplay>
-            <span>Transaction Fee</span>
+            <span>{t('mk.lblFee')}</span>
             <p>
               {FEE} {TICKER}
             </p>
@@ -189,7 +186,7 @@ const ConfirmOrderModal: React.FC = () => {
           {myOrderSide === 'bid' && (
             <KeyValueDisplay color={Colors.DANGER}>
               <>
-                <span>Total Cost</span>
+                <span>{t('mk.lblCost')}</span>
                 <p>
                   {calculatedCostOrProceeds} {TICKER}
                 </p>
@@ -200,7 +197,7 @@ const ConfirmOrderModal: React.FC = () => {
           {myOrderSide === 'ask' && (
             <KeyValueDisplay color={Colors.SUCCESS}>
               <>
-                <span>Total Proceeds</span>
+                <span>{t('mk.lblProceeds')}</span>
                 <p>
                   {calculatedCostOrProceeds} {TICKER}
                 </p>
@@ -212,17 +209,14 @@ const ConfirmOrderModal: React.FC = () => {
 
       {!isFilling && (
         <WarningWrapper>
-          <WarningCritical
-            title=""
-            subtitle={[
-              'The transaction fee will immediately be charged to broadcast the order. Upon broadcasting, the assets or coins involved will be sent to a global address and will leave your wallet temporarily until the order is filled or cancelled.',
-            ]}
-          />
+          <WarningCritical title="" subtitle={[t('mk.feeNote')]} />
         </WarningWrapper>
       )}
 
-      <CenteredButtonWrapper onClick={handleOrderBroadcast}>
-        <Button theme={buttonTheme}>{buttonLabel}</Button>
+      <CenteredButtonWrapper>
+        <Button theme={buttonTheme} data-tid="mk-confirm" onClick={handleOrderBroadcast}>
+          {buttonLabel}
+        </Button>
       </CenteredButtonWrapper>
     </div>
   );

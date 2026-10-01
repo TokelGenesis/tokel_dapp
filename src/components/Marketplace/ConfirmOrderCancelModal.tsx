@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { css } from '@emotion/react';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectModalOptions, selectTokenDetails } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
@@ -16,6 +17,7 @@ import AssetWidget from './common/AssetWidget';
 import KeyValueDisplay from './common/KeyValueDisplay';
 
 const ConfirmOrderCancelModal: React.FC = () => {
+  const t = useT();
   const { order } = useSelector(selectModalOptions) as { order: OrderDetailLite };
   const tokenDetails = useSelector(selectTokenDetails);
   const currentTokenDetails = tokenDetails[order.tokenid];
@@ -38,39 +40,39 @@ const ConfirmOrderCancelModal: React.FC = () => {
   return (
     <div
       css={css`
-        padding-left: 90px;
-        padding-right: 90px;
+        max-width: 560px;
+        margin: 0 auto;
       `}
     >
       <KeyValueDisplay>
-        <span>Asset</span>
+        <span>{t('mk.lblAsset')}</span>
         <AssetWidget asset={currentTokenDetails} />
       </KeyValueDisplay>
 
       <Columns multiline>
         <Column size={12}>
           <KeyValueDisplay>
-            <span>Order ID</span>
+            <span>{t('mk.orderId')}</span>
             <p>{order.txid}</p>
           </KeyValueDisplay>
         </Column>
 
         <Column size={3}>
           <KeyValueDisplay color={order.funcid === 'b' ? Colors.SUCCESS : Colors.DANGER}>
-            <span>Order Type</span>
-            <p>{order.funcid === 'b' ? 'Bid (Purchase)' : 'Ask (Sale)'}</p>
+            <span>{t('mk.lblType')}</span>
+            <p>{t(order.funcid === 'b' ? 'mk.typeBid' : 'mk.typeAsk')}</p>
           </KeyValueDisplay>
         </Column>
 
         <Column size={3}>
           <KeyValueDisplay>
-            <span>Amount</span>
+            <span>{t('mk.lblAmount')}</span>
             <p>{order.askamount || order.bidamount}</p>
           </KeyValueDisplay>
         </Column>
         <Column size={3}>
           <KeyValueDisplay>
-            <span>Unit Price</span>
+            <span>{t('mk.lblUnit')}</span>
             <p>
               {order.price} {TICKER}
             </p>
@@ -79,7 +81,7 @@ const ConfirmOrderCancelModal: React.FC = () => {
 
         <Column size={3}>
           <KeyValueDisplay>
-            <span>Total</span>
+            <span>{t('mk.lblTotal')}</span>
             <p>
               {order.totalrequired} {TICKER}
             </p>
@@ -87,15 +89,19 @@ const ConfirmOrderCancelModal: React.FC = () => {
         </Column>
       </Columns>
 
-      <CenteredButtonWrapper onClick={handleCancelOrder}>
-        <Button theme="purple">Cancel Order</Button>
+      <CenteredButtonWrapper>
+        <Button theme="purple" data-tid="mk-cancel-confirm" onClick={handleCancelOrder}>
+          {t('mk.cancelBtn')}
+        </Button>
 
         <small
           css={css`
             margin-top: 10px;
+            text-align: center;
+            color: var(--tg-text-2);
           `}
         >
-          Cancelling this order will incur a transaction fee of {FEE} {TICKER}
+          {t('mk.cancelFee', { fee: FEE, ticker: TICKER })}
         </small>
       </CenteredButtonWrapper>
     </div>

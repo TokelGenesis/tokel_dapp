@@ -13,6 +13,7 @@ import { dispatch } from 'store/rematch';
 import { selectTokelPriceUSD } from 'store/selectors';
 import { formatDate, getUsdValue, processPossibleBN, toBitcoinAmount } from 'util/helpers';
 import { TxType } from 'util/nspvlib-mock';
+import pressable from 'util/pressable';
 import { Colors, ModalName, ResourceType, TICKER } from 'vars/defines';
 
 import ExplorerLink from 'components/_General/ExplorerLink';
@@ -152,7 +153,7 @@ const ActivityList = ({
           const activityData = ActivityMap[activityType];
           return (
             <ActivityListItem key={tx.txid}>
-              <Transaction onClick={() => handleTxDetailView(tx)}>
+              <Transaction data-tid="activity-row" {...pressable(() => handleTxDetailView(tx))}>
                 <TriCell icon={tx.unconfirmed ? clockIcon : checkIcon} primary={times[0]} />
                 <TriCell secondary={times[1]} />
 

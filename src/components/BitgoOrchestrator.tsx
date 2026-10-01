@@ -149,6 +149,19 @@ const BitgoOrchestrator = () => {
         dispatch.currentTransaction.SET_TOKEN_TX(true);
         return;
       }
+      // LOOKUPS: an order or token the network does not know is an answer, not a lost connection; reconnecting
+      // here made the market form ask again and again
+      if (
+        payload.error &&
+        payload.lookupId &&
+        [BitgoAction.ASSET_V2_FETCH_ORDER_DECODED, BitgoAction.TOKEN_V2_INFO_TOKEL].includes(
+          payload.type
+        )
+      ) {
+        console.warn(payload.type, payload.error);
+        dispatch.marketplace.SET_NOT_FOUND(payload.lookupId);
+        return;
+      }
       // HANDLE ALL OTHER ERRORS GENERICALLY
       if (payload.error) {
         commonError(payload.error);

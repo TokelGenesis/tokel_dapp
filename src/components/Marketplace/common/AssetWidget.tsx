@@ -3,23 +3,24 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import links from 'util/links';
-import { V } from 'util/theming';
 import { TokenDetail } from 'util/token-types';
 import { TICKER } from 'vars/defines';
 
 import OpenInExplorer from 'components/_General/OpenInExplorer';
 
 const Wrapper = styled.div<{ isPlaceholder?: boolean }>`
-  background-color: ${V.color.backSoftest};
-  padding: 12px;
-  border-radius: 4px;
+  background: var(--tg-surface-2);
+  border: 1px solid var(--tg-separator);
+  padding: 12px 14px;
+  border-radius: var(--tg-radius);
 
   display: flex;
 
   & > span {
     height: 40px;
     width: 40px;
-    ${props => props.isPlaceholder && `background-color: ${V.color.back};`}
+    ${props =>
+      props.isPlaceholder && `background-color: var(--tg-fill); border-radius: var(--tg-radius-s);`}
   }
 
   & > div {
@@ -43,7 +44,9 @@ const Wrapper = styled.div<{ isPlaceholder?: boolean }>`
     `}
 
     span {
-      ${props => props.isPlaceholder && `background-color: ${V.color.back};`}
+      ${props =>
+        props.isPlaceholder &&
+        `background-color: var(--tg-fill); border-radius: var(--tg-radius-s);`}
 
       h1,
       h2 {
@@ -54,11 +57,14 @@ const Wrapper = styled.div<{ isPlaceholder?: boolean }>`
       }
       h1 {
         text-align: left;
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: 600;
       }
 
       h2 {
-        font-size: 14px;
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--tg-text-2);
       }
     }
 
@@ -82,7 +88,7 @@ interface AssetWidgetProps {
 const AssetWidget: React.FC<AssetWidgetProps> = ({ asset }) => {
   if (!asset)
     return (
-      <Wrapper isPlaceholder>
+      <Wrapper isPlaceholder data-tid="mk-asset-empty">
         <span />
         <div>
           <span />
@@ -95,7 +101,7 @@ const AssetWidget: React.FC<AssetWidgetProps> = ({ asset }) => {
 
   return (
     <>
-      <Wrapper>
+      <Wrapper data-tid="mk-asset">
         <div>
           <span>
             <h1>{asset.name}</h1>

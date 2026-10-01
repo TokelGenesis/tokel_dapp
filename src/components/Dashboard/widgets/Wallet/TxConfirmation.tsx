@@ -10,6 +10,7 @@ import {
   selectCurrentTxId,
   selectCurrentTxStatus,
 } from 'store/selectors';
+import { useT } from 'i18n';
 import { getUnixTimestamp } from 'util/helpers';
 
 import ErrorMessage from 'components/_General/ErrorMessage';
@@ -28,6 +29,7 @@ type TxConfirmationProps = {
 };
 
 const TxConfirmation = ({ recipient, amount, from }: TxConfirmationProps): React.ReactElement => {
+  const t = useT();
   const txStatus = useSelector(selectCurrentTxStatus);
   const txId = useSelector(selectCurrentTxId);
   const txError = useSelector(selectCurrentTxError);
@@ -37,13 +39,11 @@ const TxConfirmation = ({ recipient, amount, from }: TxConfirmationProps): React
     <TxConfirmationRoot>
       {!txId && txStatus === 0 && (
         <div style={{ textAlign: 'center' }}>
-          <h2>Your transaction is being broadcast</h2>
-          <GrayLabel>Please allow up to a minute for the broadcast to come through.</GrayLabel>
-          <GrayLabel>
-            Please do not close the window while transaction is being processed.
-          </GrayLabel>
+          <h2>{t('send.broadcasting')}</h2>
+          <GrayLabel>{t('send.wait1')}</GrayLabel>
+          <GrayLabel>{t('send.wait2')}</GrayLabel>
           <VSpaceMed />
-          <Spinner bgColor="var(--color-modal-bg)" />
+          <Spinner bgColor="var(--tg-surface)" />
         </div>
       )}
       {!txId && txStatus < 0 && (

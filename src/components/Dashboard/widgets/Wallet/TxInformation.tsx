@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { DEFAULT_NULL_MODAL } from 'store/models/environment';
 import { dispatch } from 'store/rematch';
 import { selectCurrentTokenInfo } from 'store/selectors';
@@ -52,22 +53,29 @@ const TxInformation = ({
   recipient,
   tokenTx,
 }: TxConfirmationProps): React.ReactElement => {
+  const t = useT();
   const currentToken = useSelector(selectCurrentTokenInfo);
   const txAmount = toBitcoinAmount(amountInSatoshi);
   return (
     <Column className="wrp">
-      <TxConfirmationRow label="From" value={from ? stringifyAddresses(from) : INFORMATION_N_A} />
-      <TxConfirmationRow label="To" value={stringifyAddresses(recipient) ?? INFORMATION_N_A} />
+      <TxConfirmationRow
+        label={t('tx.from')}
+        value={from ? stringifyAddresses(from) : INFORMATION_N_A}
+      />
+      <TxConfirmationRow
+        label={t('tx.to')}
+        value={stringifyAddresses(recipient) ?? INFORMATION_N_A}
+      />
       <Row>
-        <TxConfirmationRow label="Date and time" value={formatDate(timestamp) ?? INFORMATION_N_A} />
+        <TxConfirmationRow label={t('tx.date')} value={formatDate(timestamp) ?? INFORMATION_N_A} />
         {tokenTx ? (
-          <TxConfirmationRow label="Token" value={`${txAmount} ${currentToken.name}`} />
+          <TxConfirmationRow label={t('tx.token')} value={`${txAmount} ${currentToken.name}`} />
         ) : (
-          <TxConfirmationRow label="Amount" value={`${txAmount} ${TICKER}`} />
+          <TxConfirmationRow label={t('tx.amount')} value={`${txAmount} ${TICKER}`} />
         )}
       </Row>
       <Column>
-        <TxConfirmationRow label="Tx id">
+        <TxConfirmationRow label={t('tx.id')}>
           <ExplorerLink txidColor={Colors.WHITE} txid={txid} />
         </TxConfirmationRow>
       </Column>

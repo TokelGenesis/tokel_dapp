@@ -34,7 +34,7 @@ const side = page => page.locator('[data-tid="sidemenu"]').first().waitFor({ tim
   check('A: logging in right after start reaches the main screen (no endless "Trying to connect")', ok, `${((Date.now() - t) / 1000).toFixed(1)} s`);
   await page.waitForTimeout(8000);
   const body = await page.evaluate(() => document.body.innerText);
-  check('A: balance shown', /SPENDABLE[\s\S]{0,20}TKL/.test(body), body.replace(/\s+/g, ' ').slice(0, 120));
+  check('A: balance shown', /Spendable[\s\S]{0,40}TKL/i.test(body), body.replace(/\s+/g, ' ').slice(0, 120));
   check('A: a valid 24-word seed phrase needs no confirmation', await page.locator('[data-tid="login-confirm"]').count() === 0);
   check('E: nothing is fetched from price.tokel.io', !log.urls.some(u => u.includes('price.tokel.io')), log.urls.filter(u => u.includes('tokel.io')).join(','));
   check('A: no errors', log.errors.length === 0, log.errors.slice(0, 4).join(' | '));

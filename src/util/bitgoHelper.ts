@@ -94,6 +94,7 @@ export type BitgoMsg = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   error?: string;
+  lookupId?: string; // for a failed order or token lookup: the ID that was asked for
 };
 
 export const checkData = (msg: BitgoMsg) => {

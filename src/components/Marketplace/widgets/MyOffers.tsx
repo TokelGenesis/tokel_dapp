@@ -1,16 +1,23 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { css } from '@emotion/react';
+import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { selectAllMyOffers, selectMyTokenDetails } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
 
-import { Box, SubTitle, Title } from 'components/_General/_UIElements/common';
-import { Column, Columns } from 'components/_General/Grid';
 import Offer from 'components/Marketplace/common/Offer';
+import OrderList from '../common/OrderList';
+
+const Narrow = styled.div`
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+`;
 
 const MyOffersWidget: React.FC = () => {
+  const t = useT();
   const allMyOffers = useSelector(selectAllMyOffers);
   const myTokensDetails = useSelector(selectMyTokenDetails);
 
@@ -23,40 +30,13 @@ const MyOffersWidget: React.FC = () => {
   }, []);
 
   return (
-    <Column
-      size={12}
-      css={css`
-        padding: 20px 0px 0px;
-      `}
-    >
-      <Columns
-        css={css`
-          height: 100%;
-          padding: 0 !important;
-        `}
-      >
-        <Column size={8}>
-          <Box>
-            <Title>Offers on my assets</Title>
-            {allMyOffers?.length === 0 ? (
-              <SubTitle>No open orders found</SubTitle>
-            ) : (
-              <div
-                css={css`
-                  overflow: auto;
-                  padding-top: 12px;
-                  max-height: 90%;
-                `}
-              >
-                {allMyOffers.map(offer => (
-                  <Offer order={offer} key={offer.txid} />
-                ))}
-              </div>
-            )}
-          </Box>
-        </Column>
-      </Columns>
-    </Column>
+    <Narrow>
+      <OrderList title={t('mk.offersTitle')} empty={t('mk.noOffers')} tid="mk-offers">
+        {allMyOffers?.map(offer => (
+          <Offer order={offer} key={offer.txid} />
+        ))}
+      </OrderList>
+    </Narrow>
   );
 };
 

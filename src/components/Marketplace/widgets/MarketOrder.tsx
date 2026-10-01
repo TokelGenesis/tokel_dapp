@@ -2,16 +2,17 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import { css } from '@emotion/react';
+import styled from '@emotion/styled';
 import { Form, FormikProvider, useFormik } from 'formik';
 import { toBitcoin } from 'satoshi-bitcoin';
 
 import useDebounce from 'hooks/useDebounce';
 import useMyTokens from 'hooks/useMyTokens';
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
-import { selectOrderDetails, selectTokenDetails } from 'store/selectors';
+import { selectNotFound, selectOrderDetails, selectTokenDetails } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
 import { parseBigNumObject } from 'util/helpers';
-import { V } from 'util/theming';
 import useFulfillOrderSchema from 'util/validators/useMarketOrderSchema';
 import { Colors, ModalName, TICKER } from 'vars/defines';
 
@@ -22,6 +23,25 @@ import { Button } from 'components/_General/buttons';
 import { Column, Columns } from 'components/_General/Grid';
 import AssetWidget from '../common/AssetWidget';
 import ViewContext from '../common/ViewContext';
+
+const Card = styled(Box)`
+  height: auto;
+  padding: 24px 28px 26px;
+  h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+  }
+  .lead {
+    margin: 0 0 18px;
+    font-size: 13px;
+    color: var(--tg-text-2);
+  }
+  .missing {
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    color: var(--tg-danger);
+  }
+`;
 
 const initialValues = {
   orderId: '',
@@ -44,6 +64,8 @@ type MarketOrder = {
 const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
   const orderDetails = useSelector(selectOrderDetails);
   const tokenDetails = useSelector(selectTokenDetails);
+  const notFound = useSelector(selectNotFound);
+  const t = useT();
   const myTokens = useMyTokens();
   const fulfillOrderSchema = useFulfillOrderSchema(type);
   const { currentOrderId: prefillOrderId } = React.useContext(ViewContext);
@@ -71,6 +93,11 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
   const currentTokenDetails =
     currentOrderDetails?.token || tokenDetails?.[formikBag.values.assetId];
 
+  const lookupFailed =
+    !currentOrderDetails &&
+    !currentTokenDetails &&
+    Boolean(notFound[type === 'fill' ? debouncedOrderId : debouncedAssetId]);
+
   const buttonTheme = React.useMemo(() => {
     if (type === 'bid' || (type === 'fill' && currentOrderDetails?.type === 'ask')) {
       return Colors.SUCCESS;
@@ -81,23 +108,23 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
     return Colors.PURPLE;
   }, [type, currentOrderDetails]);
 
-  const title = type === 'ask' ? 'Sell order' : type === 'bid' ? 'Bid Order' : 'Fill Order';
-  const subTitle =
+  const title = t(
+    type === 'ask' ? 'mk.sellTitle' : type === 'bid' ? 'mk.bidTitle' : 'mk.fillTitle'
+  );
+  const subTitle = t(
+    type === 'ask' ? 'mk.sellText' : type === 'bid' ? 'mk.bidText' : 'mk.fillText'
+  );
+  const buttonLabel = t(
     type === 'ask'
-      ? 'Put a token up for sale.'
+      ? 'mk.reviewSell'
       : type === 'bid'
-      ? 'Place a bid on a token order using a token ID. You can get the token ID at the token details in the explorer'
-      : 'Use this form to fill an order. You can either fill a buy order (sell your token/NFT), or fill a sell order (buy someone elses token/NFT).';
-  const buttonLabel =
-    type === 'ask'
-      ? 'Review sell order'
-      : type === 'bid'
-      ? 'Review bid order'
+      ? 'mk.reviewBid'
       : currentOrderDetails?.type === 'ask'
-      ? 'Review purchase'
+      ? 'mk.reviewBuy'
       : currentOrderDetails?.type === 'bid'
-      ? 'Review sale'
-      : 'Review order';
+      ? 'mk.reviewSale'
+      : 'mk.review'
+  );
 
   React.useEffect(() => {
     if (prefillOrderId?.length)
@@ -159,16 +186,32 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
     currentOrderDetails,
   ]);
 
+  // an ID entered again gets a fresh lookup, even if it was not found before
   React.useEffect(() => {
-    if (debouncedOrderId?.length === 64 && !orderDetails?.[debouncedOrderId]) {
+    [debouncedOrderId, debouncedAssetId].forEach(id => {
+      if (id && notFound[id]) dispatch.marketplace.CLEAR_NOT_FOUND(id);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedOrderId, debouncedAssetId]);
+
+  React.useEffect(() => {
+    if (
+      debouncedOrderId?.length === 64 &&
+      !orderDetails?.[debouncedOrderId] &&
+      !notFound[debouncedOrderId]
+    ) {
       sendToBitgo(BitgoAction.ASSET_V2_FETCH_ORDER_DECODED, {
         orderId: debouncedOrderId,
       });
     }
-  }, [debouncedOrderId, orderDetails]);
+  }, [debouncedOrderId, orderDetails, notFound]);
 
   React.useEffect(() => {
-    if (debouncedAssetId?.length === 64 && !tokenDetails?.[debouncedAssetId]) {
+    if (
+      debouncedAssetId?.length === 64 &&
+      !tokenDetails?.[debouncedAssetId] &&
+      !notFound[debouncedAssetId]
+    ) {
       sendToBitgo(BitgoAction.TOKEN_V2_INFO_TOKEL, {
         tokenId: debouncedAssetId,
       });
@@ -180,7 +223,7 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
         });
       }
     }
-  }, [debouncedAssetId, tokenDetails, type]);
+  }, [debouncedAssetId, tokenDetails, type, notFound]);
 
   React.useEffect(() => {
     if (formikBag.values.orderId?.length !== 64) {
@@ -192,25 +235,18 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
   }, [formikBag.setFieldValue, formikBag.values.orderId]);
 
   return (
-    <Box
-      css={css`
-        padding-left: 5em;
-        padding-right: 5em;
-        padding-top: 2.5em;
-        padding-bottom: 2.5em;
-      `}
-    >
-      <h3 style={{ marginBottom: '4px' }}>{title}</h3>
-      <h5 style={{ fontWeight: 400, marginTop: 0, color: `${V.color.frontSoft}` }}>{subTitle}</h5>
+    <Card data-tid={`mk-form-${type}`}>
+      <h2>{title}</h2>
+      <p className="lead">{subTitle}</p>
       <FormikProvider value={formikBag}>
         <Form>
           {type === 'fill' && (
             <Field
               name="orderId"
               type="textarea"
-              placeholder="Paste an ask or bid ID to fill"
-              label="Order ID"
-              help="If someone has sent you an order ID, you may paste it here to see further information and fulfill it"
+              placeholder={t('mk.orderIdPh')}
+              label={t('mk.orderId')}
+              help={t('mk.orderIdHelp')}
             />
           )}
 
@@ -218,10 +254,10 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
             <Select
               name="assetId"
               type="textarea"
-              label="Asset to sell"
-              placeholder="Search for an asset you own..."
+              label={t('mk.asset')}
+              placeholder={t('mk.assetPh')}
               options={Object.values(myTokens)}
-              help="Select an asset you own and place an order to sell it. You'll receive an order ID you can send to the buyer to complete the order."
+              help={t('mk.assetHelp')}
               useOptionValueAsFieldValue
             />
           )}
@@ -230,9 +266,9 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
             <Field
               name="assetId"
               type="textarea"
-              placeholder="Paste a asset ID to bid for"
-              label="Token ID"
-              help="You can get the token or nFT ID by asking the creator, or by navigating in the explorer"
+              placeholder={t('mk.tokenIdPh')}
+              label={t('mk.tokenId')}
+              help={t('mk.tokenIdHelp')}
             />
           )}
 
@@ -246,20 +282,20 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
               <Field
                 name="quantity"
                 type="number"
-                label="Quantity"
+                label={t('mk.qty')}
                 readOnly={currentTokenDetails?.supply === 1}
                 placeholder="100,000"
                 min={1}
-                help="Number of tokens to include in this order. Always one for NFTs."
+                help={t('mk.qtyHelp')}
               />
             </Column>
             <Column size={7}>
               <Field
                 name="price"
                 type="text"
-                label="Price per unit"
+                label={t('mk.price')}
                 placeholder="0"
-                help="The price per unit of this asset for this order. Multiply this value by the quantity to get the total price."
+                help={t('mk.priceHelp')}
                 disabled={type === 'fill'}
                 appendLight
                 append={TICKER}
@@ -268,6 +304,11 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
           </Columns>
 
           <AssetWidget asset={currentTokenDetails} />
+          {lookupFailed && (
+            <p className="missing" role="status" data-tid="mk-not-found">
+              {t(type === 'fill' ? 'mk.orderMissing' : 'mk.tokenMissing')}
+            </p>
+          )}
 
           <CenteredButtonWrapper
             css={css`
@@ -275,6 +316,7 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
             `}
           >
             <Button
+              data-tid="mk-review"
               theme={buttonTheme}
               disabled={!formikBag.isValid}
               loading={
@@ -288,7 +330,7 @@ const MarketOrderWidget: React.FC<MarketOrderWidgetProps> = ({ type }) => {
           </CenteredButtonWrapper>
         </Form>
       </FormikProvider>
-    </Box>
+    </Card>
   );
 };
 

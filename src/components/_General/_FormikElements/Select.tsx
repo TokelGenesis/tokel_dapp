@@ -4,6 +4,8 @@ import CreatableReactSelect from 'react-select/creatable';
 
 import { FieldHookConfig, useFormikContext } from 'formik';
 
+import { useT } from 'i18n';
+
 import { useReactSelectStyles } from './common';
 import FieldContainer from './FieldContainer';
 
@@ -35,6 +37,7 @@ const Select: React.FC<SelectProps & FieldHookConfig<string>> = ({
   const SelectComponent = creatable ? CreatableReactSelect : ReactSelect;
 
   const { setFieldValue, setFieldTouched } = useFormikContext();
+  const t = useT();
   const customStyles = useReactSelectStyles();
 
   const handleChange = (option?: SelectOption) => {
@@ -52,6 +55,8 @@ const Select: React.FC<SelectProps & FieldHookConfig<string>> = ({
         options={options}
         styles={customStyles}
         isClearable
+        noOptionsMessage={() => t('sel.none')}
+        {...(creatable ? { formatCreateLabel: (v: string) => t('sel.create', { v }) } : {})}
       />
     </FieldContainer>
   );

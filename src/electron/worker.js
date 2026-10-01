@@ -26,6 +26,43 @@ const {
   ccimp,
 } = require('@tokel/nspv-js');
 
+/*
+ * The library's tokenV2FetchOrder throws inside `new Promise(async ...)`. For an ID that is not an order (a
+ * wrong paste, a token ID, a spent order) its promise never settles and the error escapes as an unhandled
+ * rejection, which used to kill this worker and freeze the whole app behind an error box. So the lookup gets a
+ * deadline, and an escaped error is turned into the answer of the lookups waiting at that moment.
+ */
+const ORDER_LOOKUP_MS = 30000;
+const waitingLookups = new Set();
+process.on('unhandledRejection', reason => {
+  console.error('unhandled rejection in the wallet worker', reason);
+  waitingLookups.forEach(fail => fail(reason));
+});
+const fetchOrderSafely = (connection, network, wif, orderId) => {
+  let fail;
+  let timer;
+  const escaped = new Promise((resolve, reject) => {
+    fail = e => reject(e instanceof Error ? e : new Error(String(e)));
+    timer = setTimeout(() => fail(new Error('Order not found')), ORDER_LOOKUP_MS);
+    waitingLookups.add(fail);
+  });
+  return Promise.race([
+    ccassetsv2.tokenV2FetchOrder(connection, network, wif, orderId),
+    escaped,
+  ]).finally(() => {
+    clearTimeout(timer);
+    waitingLookups.delete(fail);
+  });
+};
+
+// the ID a failed lookup asked for, so the app can say "not found" (IDs only, never anything else)
+const LOOKUPS = { asset_v2_fetch_order_decoded: 'orderId', token_v2_info_tokel: 'tokenId' };
+const lookupId = msg => {
+  const key = LOOKUPS[msg.type];
+  const id = key && msg.payload && msg.payload[key];
+  return typeof id === 'string' && /^[0-9a-fA-F]{64}$/.test(id) ? id : undefined;
+};
+
 const BitgoAction = {
   SET_NETWORK: 'set_network',
   RECONNECT: 'reconnect',
@@ -270,12 +307,7 @@ class BitgoSingleton {
 
   async [BitgoAction.ASSET_V2_FETCH_ORDER_DECODED]({ orderId }) {
     try {
-      const order = await ccassetsv2.tokenV2FetchOrder(
-        this.connection,
-        this.network,
-        this.wif,
-        orderId
-      );
+      const order = await fetchOrderSafely(this.connection, this.network, this.wif, orderId);
       return order;
     } catch (e) {
       console.error(e);
@@ -556,6 +588,11 @@ parentPort.on('message', msg => {
       return null;
     })
     .catch(e => {
-      return parentPort.postMessage({ type: msg.type, data: null, error: e.message });
+      return parentPort.postMessage({
+        type: msg.type,
+        data: null,
+        error: e.message,
+        lookupId: lookupId(msg),
+      });
     });
 });

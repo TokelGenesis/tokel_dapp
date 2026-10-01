@@ -2,6 +2,7 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import links from 'util/links';
 
 const FeedbackRoot = styled.div`
@@ -13,28 +14,29 @@ const FeedbackRoot = styled.div`
 `;
 
 const Feedback = () => {
+  const t = useT();
   return (
     <FeedbackRoot>
-      <h4>Please, share your feedback with us so we can improve.</h4>
+      <h4>{t('fb.ask')}</h4>
       <ul>
         <li>
-          Feel free to create{' '}
+          {t('fb.issue1')}
           <a href={links.githubIssue} key="githubIssue" rel="noreferrer" target="_blank">
-            an issue for us in Github
+            {t('fb.issue2')}
           </a>
         </li>
         <li>
-          Reach out to the team in{' '}
+          {t('fb.discord1')}
           <a href={links.discord} key="discordFeedback" rel="noreferrer" target="_blank">
-            {' '}
             Discord
           </a>
         </li>
         <li>
-          Send us{' '}
+          {t('fb.mail1')}
           <a href={links.devEmail} key="devEmaillink" rel="noreferrer" target="_blank">
-            an email with your thoughts
-          </a>
+            {t('fb.mail2')}
+          </a>{' '}
+          (imperialtokel@gmail.com)
         </li>
       </ul>
       <p
@@ -43,7 +45,7 @@ const Feedback = () => {
           textAlign: 'right',
         }}
       >
-        Yours sincerely, Tokel team
+        {t('fb.sign')}
       </p>
     </FeedbackRoot>
   );

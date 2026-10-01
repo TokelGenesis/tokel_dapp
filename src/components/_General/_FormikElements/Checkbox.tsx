@@ -2,22 +2,17 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 import { FieldHookConfig, useField } from 'formik';
-import { V } from 'util/theming';
 
 const Container = styled.label`
   display: flex;
   align-items: center;
-
   position: relative;
   cursor: pointer;
-  font-size: ${V.font.p};
-  color: ${V.color.frontSofter};
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  font-size: 13px;
+  color: var(--tg-text);
   user-select: none;
-  padding-left: 25px;
-
+  padding-left: 28px;
+  min-height: 20px;
   input {
     position: absolute;
     opacity: 0;
@@ -25,13 +20,13 @@ const Container = styled.label`
     height: 0;
     width: 0;
   }
-
-  &:hover input ~ span,
   input:checked ~ span {
-    background-color: ${V.color.cornflowerHard};
-    border-color: ${V.color.cornflowerHard};
+    background-color: var(--tg-accent);
+    border-color: var(--tg-accent);
   }
-
+  input:focus-visible ~ span {
+    box-shadow: 0 0 0 3px var(--tg-focus);
+  }
   input:checked ~ span:after {
     display: block;
   }
@@ -39,26 +34,24 @@ const Container = styled.label`
 
 const Checkmark = styled.span`
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 0;
-  height: 20px;
-  width: 20px;
-  background-color: transparent;
-  border: 1px solid ${V.color.frontSofter};
-  border-radius: ${V.size.borderRadius};
-
+  margin-top: -9px;
+  height: 18px;
+  width: 18px;
+  background-color: var(--tg-input);
+  border: 1px solid var(--tg-border);
+  border-radius: 5px;
   &:after {
     content: '';
     position: absolute;
     display: none;
-    left: 6px;
-    top: 4px;
-    width: 3px;
-    height: 6px;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
     border: solid white;
-    border-width: 0 3px 3px 0;
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
+    border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }
 `;

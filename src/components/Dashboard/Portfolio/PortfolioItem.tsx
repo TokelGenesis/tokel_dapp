@@ -3,6 +3,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import tokelIcon from 'assets/logo.svg';
+import pressable from 'util/pressable';
 import { PORTFOLIO_ITEM_HEIGHT_PX } from 'vars/defines';
 
 type PortfolioItemRootProps = { selected: boolean };
@@ -98,7 +99,11 @@ const PortfolioItem = ({
   onClick,
 }: PortfolioItemProps): React.ReactElement => {
   return (
-    <PortfolioItemRoot selected={selected} onClick={onClick}>
+    <PortfolioItemRoot
+      selected={selected}
+      aria-current={selected || undefined}
+      {...pressable(onClick)}
+    >
       {icon && (
         <IconWrapper>
           <img alt={`${name}-icon`} src={tokelIcon} />

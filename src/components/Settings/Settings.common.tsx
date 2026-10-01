@@ -2,47 +2,93 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
-import { V } from 'util/theming';
-
-const SubsectionRoot = styled.div`
+// macOS System Settings: a caption, then one rounded box of rows split by hairlines.
+const GroupRoot = styled.section`
   width: 100%;
-  margin-bottom: 3rem;
-  padding: 0 14px;
-`;
-
-const SubsectionHeader = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1rem;
-  font-size: 20px;
-  color: ${V.color.slate};
+  flex-direction: column;
+  gap: 8px;
 `;
 
-const SubsectionSubtitle = styled.span`
-  color: ${V.color.growth};
-  font-size: ${V.font.p};
-  margin-right: 50px;
+const GroupTitle = styled.h2`
+  margin: 0 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tg-text-2);
 `;
 
-const SubsectionBody = styled.div<{ contrast?: boolean }>`
-  background-color: ${p => (p.contrast ? V.color.backHard : 'none')};
-  border-radius: ${V.size.borderRadius};
-  margin-left: -6px;
+const GroupBox = styled.div`
+  border-radius: var(--tg-radius-l);
+  background: var(--tg-surface);
+  border: 1px solid var(--tg-separator);
+  box-shadow: var(--tg-shadow-1);
+  overflow: hidden;
 `;
 
-export interface SubsectionProps {
-  name: string;
-  subtitle?: string;
-  contrast?: boolean;
+export const SettingsGroup = ({
+  title,
+  children,
+}: {
+  title: string;
   children: React.ReactNode;
-}
+}) => (
+  <GroupRoot>
+    <GroupTitle>{title}</GroupTitle>
+    <GroupBox>{children}</GroupBox>
+  </GroupRoot>
+);
 
-export const Subsection = ({ name, subtitle, contrast, children }: SubsectionProps) => (
-  <SubsectionRoot>
-    <SubsectionHeader>
-      {name} {subtitle && <SubsectionSubtitle>{subtitle}</SubsectionSubtitle>}
-    </SubsectionHeader>
-    <SubsectionBody contrast={contrast}>{children}</SubsectionBody>
-  </SubsectionRoot>
+const RowRoot = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 10px 16px;
+  & + & {
+    border-top: 1px solid var(--tg-separator);
+  }
+  .text b {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .text small {
+    display: block;
+    font-size: 12px;
+    color: var(--tg-text-2);
+    margin-top: 1px;
+  }
+`;
+
+export const SettingsRow = ({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children?: React.ReactNode;
+}) => (
+  <RowRoot>
+    <div className="text">
+      <b>{label}</b>
+      {hint && <small>{hint}</small>}
+    </div>
+    {children}
+  </RowRoot>
+);
+
+export const SettingsBlock = styled.div`
+  padding: 14px 16px 16px;
+  & + & {
+    border-top: 1px solid var(--tg-separator);
+  }
+`;
+
+// (older name, still used by forms)
+export const Subsection = ({ name, children }: { name: string; children: React.ReactNode }) => (
+  <SettingsGroup title={name}>
+    <SettingsBlock>{children}</SettingsBlock>
+  </SettingsGroup>
 );

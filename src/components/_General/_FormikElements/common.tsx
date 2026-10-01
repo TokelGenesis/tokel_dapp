@@ -5,26 +5,29 @@ import { css } from '@emotion/react';
 import { V } from 'util/theming';
 
 const inputStyles = css`
-  border-radius: 5px;
-  background-color: ${V.color?.back};
-  color: ${V.color?.frontSofter};
-  border: 2px solid ${V.color?.backSoftest};
-  font-size: ${V?.font.pSmall};
-  padding: 10px;
+  border-radius: var(--tg-radius-s);
+  background-color: var(--tg-input);
+  color: var(--tg-text);
+  border: 1px solid var(--tg-border);
+  font-size: 13px;
+  padding: 8px 10px;
   width: 100%;
-  font-family: source-sans-pro, sans-serif;
+  font-family: var(--tg-font);
   resize: none;
-
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  &::placeholder {
+    color: var(--tg-text-3);
+  }
   &[readOnly],
   &[disabled] {
-    background-color: ${V.color?.backSoftest};
-    color: ${V.color?.frontOp[50]};
+    background-color: var(--tg-fill);
+    color: var(--tg-text-2);
   }
-
-  &:focus,
-  &:hover {
+  &:focus {
     outline: none;
-    border: 2px solid ${V.color?.cornflower};
+    border-color: var(--tg-accent);
+    box-shadow: 0 0 0 3px var(--tg-focus);
   }
 `;
 
@@ -33,12 +36,17 @@ const useReactSelectStyles = () => {
   const customStyles: StylesConfig<any, false, GroupBase<any>> = {
     menu: provided => ({
       ...provided,
-      backgroundColor: V.color?.backHard,
+      backgroundColor: 'var(--tg-surface)',
+      border: '1px solid var(--tg-separator)',
+      boxShadow: 'var(--tg-shadow-2)',
+      borderRadius: 10,
+      overflow: 'hidden',
     }),
 
     control: provided => ({
       ...css(provided, inputStyles, {
-        padding: '1px',
+        padding: '0',
+        minHeight: '36px',
       }),
     }),
 
@@ -50,6 +58,7 @@ const useReactSelectStyles = () => {
     placeholder: provided => ({
       ...provided,
       marginRight: 'auto',
+      color: 'var(--tg-text-3)',
     }),
 
     singleValue: provided => ({
@@ -71,7 +80,7 @@ const useReactSelectStyles = () => {
         provided,
         `
         svg {
-          fill: ${V.color?.cornflower};
+          fill: var(--tg-text-2);
         }
       `
       ),

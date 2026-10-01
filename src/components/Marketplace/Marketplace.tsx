@@ -1,76 +1,70 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import askOrderIcon from 'assets/askOrder.svg';
-import bidOrderIcon from 'assets/bidOrder.svg';
-import fillOrderIcon from 'assets/fillOrder.svg';
-import inboxIcon from 'assets/inbox.svg';
-import listIcon from 'assets/list.svg';
 import trendUpIcon from 'assets/trendUp.svg';
+import { TKey, useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectDeepLinkParams } from 'store/selectors';
-import { V } from 'util/theming';
 
-import { Layout, SubTitle, Title } from 'components/_General/_UIElements/common';
 import Icon from 'components/_General/_UIElements/Icon';
-import MenuItem from 'components/Home/Menu/MenuItem';
-import { SideMenuRoot } from 'components/Home/Menu/SideMenu';
+import SegmentedControl from 'components/_General/SegmentedControl';
 import ViewContext, { MARKETPLACE_VIEWS } from './common/ViewContext';
 import MarketOrderWidget from './widgets/MarketOrder';
 import MyOffersWidget from './widgets/MyOffers';
 import MyOrdersWidget from './widgets/MyOrders';
 
-const menuData = [
-  {
-    type: MARKETPLACE_VIEWS.FILL,
-    name: 'Fill Order',
-    icon: fillOrderIcon,
-  },
-  {
-    type: MARKETPLACE_VIEWS.ASK,
-    name: 'Sell',
-    icon: askOrderIcon,
-  },
-  {
-    type: MARKETPLACE_VIEWS.BID,
-    name: 'Bid',
-    icon: bidOrderIcon,
-  },
-  {
-    type: MARKETPLACE_VIEWS.ORDERS,
-    name: 'My Orders',
-    icon: listIcon,
-  },
-  {
-    type: MARKETPLACE_VIEWS.OFFERS,
-    name: 'Offers',
-    icon: inboxIcon,
-  },
+const SECTIONS: { type: MARKETPLACE_VIEWS; name: TKey }[] = [
+  { type: MARKETPLACE_VIEWS.FILL, name: 'mk.fill' },
+  { type: MARKETPLACE_VIEWS.ASK, name: 'mk.sell' },
+  { type: MARKETPLACE_VIEWS.BID, name: 'mk.bid' },
+  { type: MARKETPLACE_VIEWS.ORDERS, name: 'mk.orders' },
+  { type: MARKETPLACE_VIEWS.OFFERS, name: 'mk.offers' },
 ];
 
-const AbsoluteCenter = styled.div`
-  margin: auto;
-  width: 480px;
+const Root = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+  gap: 18px;
 `;
 
-const WelcomeMessageWrapper = styled.div`
+const Bar = styled.div`
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const Content = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+`;
+
+const FormColumn = styled.div`
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+`;
+
+const Welcome = styled.div`
   margin: auto;
-  min-width: 480px;
-
-  ${Title} {
-    color: ${V.color.frontSoft};
-    margin-bottom: 0;
+  max-width: 420px;
+  text-align: center;
+  h2 {
+    margin: 14px 0 6px;
+    font-size: 20px;
   }
-
-  ${SubTitle} {
-    margin-top: 5px;
+  p {
+    margin: 0;
+    color: var(--tg-text-2);
   }
 `;
 
 const Marketplace: React.FC = () => {
+  const t = useT();
   const deepLinkParams = useSelector(selectDeepLinkParams);
   const [currentView, setCurrentView] = React.useState<MARKETPLACE_VIEWS | null>(null);
   const [currentOrderId, setCurrentOrderId] = React.useState<string | undefined>();
@@ -93,25 +87,25 @@ const Marketplace: React.FC = () => {
     }
   }, [deepLinkParams, currentView]);
 
-  const CurrentTab = () => {
+  const renderTab = () => {
     switch (currentView) {
       case MARKETPLACE_VIEWS.FILL:
         return (
-          <AbsoluteCenter>
+          <FormColumn>
             <MarketOrderWidget type="fill" />
-          </AbsoluteCenter>
+          </FormColumn>
         );
       case MARKETPLACE_VIEWS.ASK:
         return (
-          <AbsoluteCenter>
+          <FormColumn>
             <MarketOrderWidget type="ask" />
-          </AbsoluteCenter>
+          </FormColumn>
         );
       case MARKETPLACE_VIEWS.BID:
         return (
-          <AbsoluteCenter>
+          <FormColumn>
             <MarketOrderWidget type="bid" />
-          </AbsoluteCenter>
+          </FormColumn>
         );
       case MARKETPLACE_VIEWS.ORDERS:
         return <MyOrdersWidget />;
@@ -120,47 +114,37 @@ const Marketplace: React.FC = () => {
       case null:
       default:
         return (
-          <WelcomeMessageWrapper
-            css={css`
-              text-align: center;
-            `}
-          >
-            <Icon icon={trendUpIcon} height={40} color="frontSoft" centered />
-            <Title>Welcome to to the Tokel Token & NFT market</Title>
-            <SubTitle>Select an option on the side menu to begin</SubTitle>
-          </WelcomeMessageWrapper>
+          <Welcome data-tid="mktplace-welcome">
+            <Icon icon={trendUpIcon} height={40} width={40} color="gradient" centered />
+            <h2>{t('mk.welcome')}</h2>
+            <p>{t('mk.welcomeText')}</p>
+          </Welcome>
         );
     }
   };
 
+  // the segmented control needs a string value; null (no section yet) selects nothing
+  const value = currentView === null ? '' : String(currentView);
+
   return (
-    <>
-      <SideMenuRoot
-        data-tid="mktplace-sidemenu"
-        css={css`
-          margin-right: auto;
-        `}
-      >
-        <div>
-          {menuData.map(menuItem => (
-            <MenuItem
-              key={menuItem.name}
-              onClick={() => handleViewChange(menuItem.type)}
-              name={menuItem.name}
-              icon={menuItem.icon}
-              selected={menuItem.type === currentView}
-            />
-          ))}
-        </div>
-      </SideMenuRoot>
-      <Layout>
+    <Root>
+      <Bar>
+        <SegmentedControl
+          tid="mktplace-sidemenu"
+          label={t('mk.sections')}
+          value={value}
+          options={SECTIONS.map(s => ({ value: String(s.type), label: t(s.name) }))}
+          onChange={v => handleViewChange(Number(v) as MARKETPLACE_VIEWS)}
+        />
+      </Bar>
+      <Content>
         <ViewContext.Provider
           value={{ currentView, setCurrentView, currentOrderId, setCurrentOrderId }}
         >
-          <CurrentTab />
+          {renderTab()}
         </ViewContext.Provider>
-      </Layout>
-    </>
+      </Content>
+    </Root>
   );
 };
 

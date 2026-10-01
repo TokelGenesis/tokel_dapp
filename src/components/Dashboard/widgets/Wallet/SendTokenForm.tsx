@@ -12,6 +12,7 @@ import {
   selectMyTokenDetails,
   selectUnspentBalance,
 } from 'store/selectors';
+import { useT } from 'i18n';
 import { isAddressValid, processPossibleBN } from 'util/helpers';
 import { FEE, ResourceType, TICKER } from 'vars/defines';
 
@@ -47,6 +48,7 @@ const getAmount = (e, balance) => {
 };
 
 const SendForm = ({ onSubmit, type }: SendFormProps): React.ReactElement => {
+  const t = useT();
   const lockedBalance = useSelector(selectLockedTransactionsBalance);
   const coinBalance = useSelector(selectUnspentBalance) - lockedBalance;
   const chosenToken = useSelector(selectChosenToken);
@@ -74,15 +76,15 @@ const SendForm = ({ onSubmit, type }: SendFormProps): React.ReactElement => {
     let err = false;
 
     if (coinBalance < FEE) {
-      setError(`Not enough ${TICKER} to pay for fee`);
+      setError(t('send.noFee', { ticker: TICKER }));
       err = true;
     }
     if (Number(amount) <= 0 || remaining < 0) {
-      setErrorAmount('Invalid amount');
+      setErrorAmount(t('send.badAmount'));
       err = true;
     }
     if (!isAddressValid(recipient)) {
-      setError('Invalid recipient address');
+      setError(t('send.badAddress'));
       err = true;
     }
     if (err) {
@@ -108,9 +110,9 @@ const SendForm = ({ onSubmit, type }: SendFormProps): React.ReactElement => {
         }}
         onKeyDown={() => ''}
         value={recipient}
-        placeholder={`Enter recipient ${TICKER} address`}
+        placeholder={t('send.recipientTokenPh')}
         autoFocus
-        label="Recipient"
+        label={t('send.recipient')}
         error={error}
       />
       {!isNFT && (
@@ -120,27 +122,32 @@ const SendForm = ({ onSubmit, type }: SendFormProps): React.ReactElement => {
           onKeyDown={() => ''}
           value={amount}
           placeholder="0"
-          label="Amount"
+          label={t('send.amount')}
           error={errorAmount}
           button={{
-            text: 'MAX',
+            text: t('send.max'),
             onClick: () => handleSetAmount(balance),
           }}
         />
       )}
       <VSpaceSmall />
-      <ValueRow keyProp="Network Fee" value={`${FEE} ${TICKER}`} />
+      <ValueRow keyProp={t('send.fee')} value={`${FEE} ${TICKER}`} />
       <VSpaceMed />
       {!isNFT && (
         <ValueRow
-          keyProp={`Remaining balance ${tokens[chosenToken].name}`}
+          keyProp={t('send.remainingToken', { name: tokens[chosenToken].name })}
           value={Math.max(0, remaining).toString()}
         />
       )}
       <VSpaceBig />
       <RowWrapper center>
-        <Button onClick={handleSubmit} customWidth="170px" theme="purple">
-          Send
+        <Button
+          onClick={handleSubmit}
+          customWidth="170px"
+          theme="purple"
+          data-tid="send-token-submit"
+        >
+          {t('send.send')}
         </Button>
       </RowWrapper>
       <VSpaceMed />

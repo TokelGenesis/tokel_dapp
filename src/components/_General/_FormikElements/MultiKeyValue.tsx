@@ -4,6 +4,8 @@ import { Button } from 'components/_General/buttons';
 import { Columns, Column } from 'components/_General/Grid';
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
+import { Colors } from 'vars/defines';
 import Icon from 'components/_General/_UIElements/Icon';
 import PlusIcon from 'assets/Plus.svg';
 import MinusIcon from 'assets/Minus.svg';
@@ -30,6 +32,7 @@ const MultiKeyValue: React.FC<MultiKeyValueProps & FieldHookConfig<string>> = ({
   help,
   ...props
 }) => {
+  const t = useT();
   const [field, meta] = useField(props);
 
   return (
@@ -47,7 +50,7 @@ const MultiKeyValue: React.FC<MultiKeyValueProps & FieldHookConfig<string>> = ({
                   <CustomPaddingColumn size={5}>
                     <Input
                       name={`${props.name}.${index}.key`}
-                      placeholder="Attribute name"
+                      placeholder={t('tok.attrKey')}
                       type="text"
                     />
                     {Boolean(errors?.[index]?.key) && (
@@ -57,7 +60,7 @@ const MultiKeyValue: React.FC<MultiKeyValueProps & FieldHookConfig<string>> = ({
                   <CustomPaddingColumn size={5}>
                     <Input
                       name={`${props.name}.${index}.value`}
-                      placeholder="Attribute value"
+                      placeholder={t('tok.attrValue')}
                       type="text"
                     />
                     {Boolean(errors?.[index]?.value) && (
@@ -67,26 +70,27 @@ const MultiKeyValue: React.FC<MultiKeyValueProps & FieldHookConfig<string>> = ({
                   <CustomPaddingColumn size={2}>
                     <Button
                       type="button"
-                      theme="purple"
-                      customWidth="40px"
+                      theme={Colors.BLACK}
+                      aria-label="Remove"
+                      customWidth="36px"
                       onClick={() => {
                         remove(index);
                       }}
                     >
-                      <Icon icon={MinusIcon} color="front" width={18} height={18} centered />
+                      <Icon icon={MinusIcon} color="frontSoft" width={16} height={16} centered />
                     </Button>
                   </CustomPaddingColumn>
                 </Columns>
               ))}
               <Button
                 type="button"
-                theme="purple"
-                customWidth="110px"
+                theme={Colors.BLACK}
+                customWidth="auto"
                 onClick={() => push({ key: '', value: '' })}
                 hasIcon
               >
-                <Icon icon={PlusIcon} color="front" width={18} height={18} />
-                Add New
+                <Icon icon={PlusIcon} color="frontSoft" width={16} height={16} />
+                {t('tok.attrAdd')}
               </Button>
             </div>
           );

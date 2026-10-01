@@ -1,3 +1,4 @@
+import type { TKey } from 'i18n';
 import React from 'react';
 
 import { ModalName } from 'vars/defines';
@@ -14,7 +15,7 @@ import Send from './Send';
 import TxDetail from './TxDetail';
 
 interface ModalPayloadType {
-  title: string;
+  title: TKey;
   component: React.ReactElement;
   size?: 'small' | 'medium' | 'large';
 }
@@ -24,34 +25,34 @@ interface ModalCollectionType {
 }
 
 export default {
-  [ModalName.RECEIVE]: { title: 'Your wallet', component: <Receive /> },
-  [ModalName.SEND]: { title: 'Send', component: <Send /> },
-  [ModalName.FEEDBACK]: { title: 'Feedback', component: <Feedback /> },
-  [ModalName.TX_DETAIL]: { title: 'Transaction detail', component: <TxDetail /> },
+  [ModalName.RECEIVE]: { title: 'mt.receive', component: <Receive /> },
+  [ModalName.SEND]: { title: 'mt.send', component: <Send /> },
+  [ModalName.FEEDBACK]: { title: 'mt.feedback', component: <Feedback /> },
+  [ModalName.TX_DETAIL]: { title: 'mt.tx', component: <TxDetail /> },
   [ModalName.CONFIRM_TOKEN_CREATION]: {
-    title: 'Confirm token creation',
+    title: 'mt.confirmToken',
     component: <ConfirmTokenCreationModal />,
     size: 'large',
   },
   [ModalName.TOKEN_CREATED]: {
-    title: 'Transaction detail',
+    title: 'mt.tx',
     component: <TokenCreatedTx />,
   },
   [ModalName.IPFS_EXPLAINER]: {
-    title: 'Store your digital media correctly',
+    title: 'mt.ipfs',
     component: <IpfsExplainer />,
   },
   [ModalName.CONFIRM_MARKET_ORDER]: {
-    title: 'Confirm market order',
+    title: 'mt.confirmOrder',
     component: <ConfirmOrderModal />,
     size: 'medium',
   },
   [ModalName.MARKET_ORDER_SENT]: {
-    title: 'Broadcasting market order',
+    title: 'mt.orderSent',
     component: <OrderCreatedTx />,
   },
   [ModalName.CONFIRM_CANCEL_MARKET_ORDER]: {
-    title: 'Cancel Order',
+    title: 'mt.cancelOrder',
     size: 'medium',
     component: <ConfirmOrderCancelModal />,
   },

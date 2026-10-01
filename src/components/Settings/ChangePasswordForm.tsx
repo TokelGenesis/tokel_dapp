@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
+
 import { selectAccountWalletName } from 'store/selectors';
 
 import ErrorMessage from 'components/_General/ErrorMessage';
@@ -11,9 +13,21 @@ import { Subsection } from './Settings.common';
 
 const ChangePasswordFormRoot = styled.div`
   width: 100%;
+  & > section > div > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+`;
+
+const Done = styled.p`
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--tg-success);
 `;
 
 const ChangePasswordForm = () => {
+  const t = useT();
   const existingWalletName = useSelector(selectAccountWalletName);
 
   const [currentPass, setCurrentPass] = React.useState('');
@@ -30,17 +44,17 @@ const ChangePasswordForm = () => {
     setLoading(true);
     try {
       if (newPass !== newPassConfirm) {
-        throw new Error("the new passwords don't match");
+        throw new Error(t('pw.errMatch'));
       }
       if (newPass.length < 8) {
-        throw new Error('passwords must be at least 8 characters');
+        throw new Error(t('pw.errShort'));
       }
       if (newPass === currentPass) {
-        throw new Error('new password is unchanged');
+        throw new Error(t('set.pwSame'));
       }
       await window.tokelApi.wallet.changePassword(existingWalletName, currentPass, newPass);
       setError(null);
-      setSuccess('password successfully set');
+      setSuccess(t('set.pwDone'));
       setCurrentPass('');
       setNewPass('');
       setNewPassConfirm('');
@@ -55,20 +69,20 @@ const ChangePasswordForm = () => {
 
   return (
     <ChangePasswordFormRoot>
-      <Subsection name="Change Password" subtitle={success}>
+      <Subsection name={t('set.password')}>
         <InputWithLabel
           id="old-password"
           value={currentPass}
           type="password"
           onChange={e => setCurrentPass(e.target.value)}
-          label="current password"
+          label={t('set.pwCurrent')}
         />
         <InputWithLabel
           id="new-password"
           value={newPass}
           type="password"
           onChange={e => setNewPass(e.target.value)}
-          label="new password"
+          label={t('set.pwNew')}
         />
         <InputWithLabel
           id="confirm-password"
@@ -78,14 +92,15 @@ const ChangePasswordForm = () => {
           onKeyDown={e => {
             if (e.key === 'Enter') changePassword();
           }}
-          label="confirm new password"
+          label={t('set.pwConfirm')}
           button={{
-            text: 'SET',
+            text: t('set.pwSave'),
             onClick: changePassword,
             loading,
           }}
         />
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        {success && <Done role="status">{success}</Done>}
       </Subsection>
     </ChangePasswordFormRoot>
   );

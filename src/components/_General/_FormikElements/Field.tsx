@@ -4,8 +4,6 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { FieldHookConfig, useField } from 'formik';
 
-import { V } from 'util/theming';
-
 import { inputStyles } from './common';
 import FieldContainer from './FieldContainer';
 
@@ -18,7 +16,8 @@ const Input = styled.input<{ readOnly?: boolean }>`
       &[readOnly]:focus,
       &[readOnly]:hover {
         outline: none;
-        border: 2px solid ${V.color?.backSoftest};
+        border-color: var(--tg-border);
+        box-shadow: none;
       }
     `}
 `;

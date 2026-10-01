@@ -61,6 +61,7 @@ export const selectSeed = (state: RootState) => state.account.seed;
 // mktplace
 export const selectOrderDetails = (state: RootState) => state.marketplace.orderDetails;
 export const selectMyOrders = (state: RootState) => state.marketplace.myOrders;
+export const selectNotFound = (state: RootState) => state.marketplace.notFound;
 export const selectMyOffers = (state: RootState) => state.marketplace.offers;
 export const selectAllMyOffers = (state: RootState) =>
   Object.values(state.marketplace.offers)

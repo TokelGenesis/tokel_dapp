@@ -45,6 +45,7 @@ const DisplayWalletAddress = ({ title, modal_type }: WalletAddressWidgetProps) =
         <CopyTextInput
           textToCopy={target}
           label={title}
+          tid={`recv-${modal_type}`}
           onClick={openWalletModal({
             type:
               modal_type === 'pub_key'

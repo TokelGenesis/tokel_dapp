@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { selectLockedTransactionsBalance, selectUnspentBalance } from 'store/selectors';
 import { formatFiat, isAddressValid, limitLength } from 'util/helpers';
 import { FEE, TICKER } from 'vars/defines';
@@ -60,6 +61,7 @@ const getAmount = (e, balance) => {
 };
 
 const SendForm = ({ onSubmit }: SendFormProps): React.ReactElement => {
+  const t = useT();
   const [recipient, setRecipient] = React.useState('');
   const [amount, setAmount] = React.useState('');
   // const [fiatAmount, setFiatAmount] = React.useState('');
@@ -86,11 +88,11 @@ const SendForm = ({ onSubmit }: SendFormProps): React.ReactElement => {
     setErrorAmount('');
     let err = false;
     if (Number(amount) <= 0 || Number(amount) <= FEE) {
-      setErrorAmount('Invalid amount');
+      setErrorAmount(t('send.badAmount'));
       err = true;
     }
     if (!isAddressValid(recipient)) {
-      setError('Invalid recipient address');
+      setError(t('send.badAddress'));
       err = true;
     }
     if (err) {
@@ -108,9 +110,9 @@ const SendForm = ({ onSubmit }: SendFormProps): React.ReactElement => {
           setRecipient(e.target.value);
         }}
         value={recipient}
-        placeholder={`Enter ${TICKER} address`}
+        placeholder={t('send.recipientPh', { ticker: TICKER })}
         autoFocus
-        label="Recipient"
+        label={t('send.recipient')}
         error={error}
       />
       <InputWithLabel
@@ -118,22 +120,22 @@ const SendForm = ({ onSubmit }: SendFormProps): React.ReactElement => {
         onChange={handleSetAmount}
         value={amount}
         placeholder="0.0000"
-        label={`Amount (spendable balance: ${balance})`}
+        label={t('send.amountBal', { b: balance })}
         error={errorAmount}
         type="number"
         button={{
-          text: 'MAX',
+          text: t('send.max'),
           onClick: () => handleSetAmount(balance),
         }}
       />
       <VSpaceSmall />
-      <ValueRow keyProp="Network Fee" value={`${FEE} ${TICKER}`} />
+      <ValueRow keyProp={t('send.fee')} value={`${FEE} ${TICKER}`} />
       <VSpaceMed />
-      <ValueRow keyProp="Remaining balance" value={`${remaining} ${TICKER}`} />
+      <ValueRow keyProp={t('send.remaining')} value={`${remaining} ${TICKER}`} />
       <VSpaceBig />
       <RowWrapper center>
-        <Button onClick={handleSubmit} customWidth="170px" theme="purple">
-          Send
+        <Button onClick={handleSubmit} customWidth="170px" theme="purple" data-tid="send-submit">
+          {t('send.send')}
         </Button>
       </RowWrapper>
       <VSpaceMed />

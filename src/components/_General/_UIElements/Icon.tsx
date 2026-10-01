@@ -11,7 +11,7 @@ const Icon = styled.div<{
   height: ${props => `${props.height || 50}px`};
   width: ${props => `${props.width || 50}px`};
   background: ${props =>
-    props.color === 'gradient' ? `var(--gradient-purple-horizontal)` : V.color[props.color]};
+    props.color === 'gradient' ? 'var(--tg-accent-text)' : V.color[props.color]};
   mask-size: contain;
   mask-position: center;
   mask-repeat: no-repeat;

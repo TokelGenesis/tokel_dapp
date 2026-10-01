@@ -6,8 +6,8 @@ import { Form, FormikProvider, useFormik } from 'formik';
 import Caret from 'assets/Caret.svg';
 import useMyCollections from 'hooks/useMyCollections';
 import usePrevious from 'hooks/usePrevious';
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
-import { V } from 'util/theming';
 import { TokenForm } from 'util/token-types';
 import TokenType from 'util/types/TokenType';
 import useTokenCreationSchema from 'util/validators/useTokenCreationSchema';
@@ -24,23 +24,34 @@ interface CreateTokenFormProps {
   tokenType: TokenType;
 }
 
-const CaretContainer = styled.span<{ open: boolean }>`
+const CaretContainer = styled.button<{ open: boolean }>`
   width: max-content;
-  cursor: pointer;
-  font-weight: bold;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  color: var(--tg-text);
+  font-size: 13px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   margin-bottom: 4px;
 
-  img {
-    ${({ open }) => (open ? '' : 'transform: rotate(90deg)')};
+  /* the icon file is white, so it is used as a mask and takes the text colour in both themes */
+  .caret {
+    width: 9px;
+    height: 5px;
     margin-left: 6px;
+    background: currentColor;
+    mask: url('${Caret}') center / contain no-repeat;
+    ${({ open }) => (open ? '' : 'transform: rotate(-90deg)')};
+    transition: transform 0.15s ease;
   }
 `;
 
 const Bottom = styled(Columns)`
   position: sticky;
-  background-color: ${V.color.back};
+  background-color: var(--tg-surface);
+  border-top: 1px solid var(--tg-separator);
   bottom: 0;
   margin-top: auto;
 
@@ -80,7 +91,9 @@ const initialValues: Partial<TokenForm> = {
 };
 
 const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ tokenType }) => {
-  const tokenTypeDisplay = tokenType === TokenType.NFT ? 'NFT' : 'Token';
+  const t = useT();
+  const tokenTypeDisplay = tokenType === TokenType.NFT ? t('tok.nft') : t('tok.token');
+  const ty = { type: tokenTypeDisplay };
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [shownIpfsNotice, setShownIpfsNotice] = React.useState(false);
   const tokenCreationSchema = useTokenCreationSchema();
@@ -171,73 +184,79 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ tokenType }) => {
     <FormikProvider value={formikBag}>
       <FormStyled>
         <Columns>
-          <Column size={5}>
+          <Column size={6}>
             <Field
               name="name"
               type="text"
-              label={`${tokenTypeDisplay} Name`}
-              placeholder={`My${tokenTypeDisplay}`}
-              help={`The name of your ${tokenTypeDisplay}! Think of something cool. This will be shown in the wallet and explorer.`}
+              label={t('tok.name', ty)}
+              placeholder={t('tok.namePh', ty)}
+              help={t('tok.nameHelp', ty)}
             />
 
             <Field
               name="description"
               type="textarea"
-              label="Description"
-              placeholder={`What does your ${tokenTypeDisplay} represent?`}
-              help={`A description to go with your ${tokenTypeDisplay}. Can have a max length of 4096 characters.`}
+              label={t('tok.desc')}
+              placeholder={t('tok.descPh', ty)}
+              help={t('tok.descHelp', ty)}
             />
 
             <Field
               name="supply"
               type="number"
-              label="Supply"
+              label={t('tok.supply')}
               readOnly={tokenType === TokenType.NFT}
               placeholder="100,000"
               min={1}
-              help="How many of your tokens will exist? For NFTs, this field is always 1. The cost to create your token is roughly the value of this field times 0.00000001 TKL, plus transaction fees."
+              help={t('tok.supplyHelp')}
             />
 
             <Field
               name="url"
               type="text"
-              label="Media URL (optional)"
-              placeholder={`Image, video, or audio URL representing your ${tokenTypeDisplay}`}
-              help={`An image, video or audio file representing this ${tokenTypeDisplay}. We recommend using IPFS or other permanent file storage solution so your ${tokenTypeDisplay} doesn't get lost in time!`}
+              label={t('tok.url')}
+              placeholder={t('tok.urlPh', ty)}
+              help={t('tok.urlHelp', ty)}
               onFocus={handleMediaFieldFocus}
             />
 
             <Field
               name="royalty"
               type="number"
-              label="Royalty (optional)"
+              label={t('tok.royalty')}
               placeholder="0"
-              help={`Anytime this ${tokenTypeDisplay} is sold through the Tokel DEX, you can make a commission, even if you're not participating in the sale. Can range from 1% to 99.9%`}
+              help={t('tok.royaltyHelp', ty)}
               append="%"
             />
 
-            <CaretContainer open={showAdvanced} onClick={() => setShowAdvanced(!showAdvanced)}>
-              Advanced <img src={Caret} alt="caret" />
+            <CaretContainer
+              type="button"
+              open={showAdvanced}
+              aria-expanded={showAdvanced}
+              data-tid="token-advanced"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              {t('tok.advanced')} <span className="caret" aria-hidden />
             </CaretContainer>
 
             {showAdvanced && (
               <Field
                 name="id"
                 type="number"
-                label="Identifier (ID, optional)"
-                placeholder="Numeric ID"
-                help={`This is the ID of the Collection this ${tokenTypeDisplay} belongs to. You can define this manually, but it will override the Collection field. If you select a Collection, this field gets set automatically.`}
+                label={t('tok.id')}
+                placeholder={t('tok.idPh')}
+                help={t('tok.idHelp', ty)}
               />
             )}
           </Column>
-          <Column size={7}>
+          <Column size={6}>
             {tokenType === TokenType.NFT && (
               <>
                 <Select
                   name="arbitraryAsJson[collection_name]"
-                  label="Collection (optional)"
-                  placeholder="Type to select a collection or create a new one..."
-                  help="Collection is the term used for an NFT collection on the Tokel Platform. A group of NFTs is called a Collection."
+                  label={t('tok.collection')}
+                  placeholder={t('tok.collectionPh')}
+                  help={t('tok.collectionHelp')}
                   options={Object.values(myCollections)}
                   formattedSelectedOption={formattedSelectedCollectionOption}
                   creatable
@@ -245,35 +264,32 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ tokenType }) => {
                 <Field
                   name="arbitraryAsJson[number_in_collection]"
                   type="number"
-                  label="Number in Collection (optional)"
+                  label={t('tok.number')}
                   min={1}
                   placeholder="N/A"
-                  help="If this is part of a series, you can number this item here. Not required."
+                  help={t('tok.numberHelp')}
                 />
               </>
             )}
 
             <MultiKeyValue
               name="arbitraryAsJsonUnformatted"
-              label="Custom Attributes (optional)"
-              help={`You can use this field to add any property to your ${tokenTypeDisplay}, in a key-value fashion. Think of attributes like strength, luck, color, etc.`}
+              label={t('tok.attrs')}
+              help={t('tok.attrsHelp', ty)}
             />
           </Column>
         </Columns>
 
         <Bottom>
           <Column size={12}>
-            <Checkbox
-              name="confirmation"
-              label="I have checked and double checked all the inputs"
-            />
+            <Checkbox name="confirmation" label={t('tok.checked')} />
             <Button
               onClick={submitForm}
               theme="purple"
               disabled={isSubmitting || !isValid}
               data-tid="submit-token"
             >
-              Continue
+              {t('tok.continue')}
             </Button>
           </Column>
         </Bottom>

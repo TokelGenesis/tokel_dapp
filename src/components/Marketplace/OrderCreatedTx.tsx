@@ -1,10 +1,9 @@
-// This file has a lot of similarities with TokenCreatexTx.tsx. Consider merging?
-
 import React from 'react';
 import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { DEFAULT_NULL_MODAL } from 'store/models/environment';
 import { dispatch } from 'store/rematch';
 import {
@@ -29,6 +28,7 @@ const Title = styled.h2<{ success: boolean }>`
 const closeModal = () => dispatch.environment.SET_MODAL(DEFAULT_NULL_MODAL);
 
 const OrderCreatedTx: React.FC = () => {
+  const t = useT();
   const { isFilling, isCancelling, token } = useSelector(selectModalOptions) as {
     isFilling?: boolean;
     isCancelling?: boolean;
@@ -56,7 +56,7 @@ const OrderCreatedTx: React.FC = () => {
     return (
       <div css={{ textAlign: 'center' }}>
         <Loader bgColor={V.color.modal.bg} />
-        <p>Broadcasting transaction...</p>
+        <p>{t('mk.sending')}</p>
       </div>
     );
   }
@@ -64,32 +64,20 @@ const OrderCreatedTx: React.FC = () => {
   return (
     <div>
       <Title success={!hasError}>
-        {hasError
-          ? `Failed to send order`
-          : isCancelling
-          ? `Cancellation request sent`
-          : `Order sent!`}
+        {t(hasError ? 'mk.failed' : isCancelling ? 'mk.cancelSent' : 'mk.sent')}
       </Title>
 
       <AssetWidget asset={token} />
 
       {hasError ? (
         <>
-          <p>
-            An error has ocurred while broadcasting your order: <code>{error}</code>.
-          </p>
-          <p>
-            Please confirm that no transaction has been broadcast and try again in a few minutes.
-          </p>
+          <p>{t('mk.errText', { error: String(error) })}</p>
+          <p>{t('mk.errCheck')}</p>
         </>
       ) : (
         <p>
-          A transaction has been broadcast to the DEX.{' '}
-          {isCancelling
-            ? 'As soon as it is confirmed, your order will be considered cancelled and the relevant assets or coins will return to your wallet.'
-            : isFilling
-            ? 'Please check your wallet in a few minutes.'
-            : 'You can share the TX ID below with a buyer or seller so they can fulfill it.'}
+          {t('mk.sentText')}{' '}
+          {t(isCancelling ? 'mk.sentCancel' : isFilling ? 'mk.sentFill' : 'mk.sentPost')}
         </p>
       )}
 
@@ -99,8 +87,13 @@ const OrderCreatedTx: React.FC = () => {
         </div>
       )}
 
-      <Button type="button" theme={hasError ? 'danger' : 'success'} onClick={closeModal}>
-        {hasError ? 'Go back' : 'Close'}
+      <Button
+        type="button"
+        theme={hasError ? 'danger' : 'success'}
+        data-tid="mk-sent-close"
+        onClick={closeModal}
+      >
+        {t(hasError ? 'mk.back' : 'mk.close')}
       </Button>
     </div>
   );

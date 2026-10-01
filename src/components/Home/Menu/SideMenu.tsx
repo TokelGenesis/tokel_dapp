@@ -140,6 +140,7 @@ const SideMenu = () => {
         {menuData.map(menuItem => (
           <MenuItem
             key={menuItem.type}
+            tid={`nav-${menuItem.type}`}
             onClick={() => dispatch.environment.SET_VIEW(menuItem.type)}
             name={t(menuItem.name)}
             icon={menuItem.icon}

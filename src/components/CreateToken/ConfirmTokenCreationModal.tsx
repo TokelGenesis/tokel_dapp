@@ -6,6 +6,7 @@ import styled from '@emotion/styled';
 import { Form, FormikProvider, useFormik } from 'formik';
 import { toBitcoin, toSatoshi } from 'satoshi-bitcoin';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectModalOptions } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
@@ -39,12 +40,13 @@ const MediaPreviewContainer = styled.div`
 `;
 
 const InformationLabel = styled(Column)`
-  font-size: ${V.font.h3};
+  font-size: 13px;
+  font-weight: 500;
   overflow-wrap: anywhere;
 `;
 const InformationValue = styled(Column)`
-  font-size: ${V.font.h3};
-  color: ${V.color.frontSoft};
+  font-size: 13px;
+  color: var(--tg-text-2);
   overflow-wrap: anywhere;
 `;
 
@@ -69,17 +71,21 @@ const CustomAttributesDivider = styled.div`
   margin-right: auto;
 `;
 
-const NotApplicable = () => <i>N/A</i>;
+const NotApplicable = () => {
+  const t = useT();
+  return <i>{t('tok.na')}</i>;
+};
 
 const ConfirmTokenCreationModal: React.FC = () => {
+  const t = useT();
   const token = useSelector(selectModalOptions) as unknown as TokenForm;
 
   const tokenCreationSchema = useTokenCreationSchema();
 
   const tokenHelpers = React.useMemo(() => {
     const tokenType = token.supply === 1 ? TokenType.NFT : TokenType.TOKEN;
-    const tokenTypeName = tokenType === TokenType.NFT ? 'NFT' : 'token';
-    const tokenTypeNameCapitalized = tokenType === TokenType.NFT ? 'NFT' : 'Token';
+    const tokenTypeName = tokenType === TokenType.NFT ? t('tok.nft') : t('tok.token');
+    const tokenTypeNameCapitalized = tokenTypeName;
 
     const cost = toBitcoin(String(toSatoshi(FEE + TOKEN_MARKER_FEE) + Number(token.supply)));
 
@@ -87,28 +93,28 @@ const ConfirmTokenCreationModal: React.FC = () => {
       tokenType === TokenType.NFT
         ? [
             {
-              label: 'Collection',
+              label: t('tok.lblCollection'),
               value: token?.arbitraryAsJson?.collection_name || <NotApplicable />,
             },
             {
-              label: 'Number in Collection',
+              label: t('tok.lblNumber'),
               value: token?.arbitraryAsJson?.number_in_collection || <NotApplicable />,
             },
           ]
         : [];
 
     const tokenDisplayAttributes = [
-      { label: 'Supply', value: token?.supply },
+      { label: t('tok.lblSupply'), value: token?.supply },
       {
-        label: 'URL',
+        label: t('tok.lblUrl'),
         value: token?.url || <NotApplicable />,
       },
       {
-        label: 'Royalty',
-        value: token?.royalty ? `${token?.royalty}% on DEX sales` : <NotApplicable />,
+        label: t('tok.lblRoyalty'),
+        value: token?.royalty ? t('tok.onDex', { n: token?.royalty }) : <NotApplicable />,
       },
       {
-        label: tokenType === TokenType.NFT ? 'Collection ID' : 'ID',
+        label: tokenType === TokenType.NFT ? t('tok.lblCollectionId') : t('tok.lblId'),
         value: token?.id || <NotApplicable />,
       },
       ...collectionAttributes,
@@ -128,7 +134,7 @@ const ConfirmTokenCreationModal: React.FC = () => {
       tokenDisplayAttributes,
       tokenCustomAttributes,
     };
-  }, [token]);
+  }, [token, t]);
 
   const {
     tokenType,
@@ -218,7 +224,7 @@ const ConfirmTokenCreationModal: React.FC = () => {
             <Bottom>
               <Checkbox
                 name="confirmation"
-                label={`I understand creating this ${tokenTypeName} will cost ${cost} ${TICKER}`}
+                label={t('tok.cost', { type: tokenTypeName, cost, ticker: TICKER })}
               />
               <Button
                 type="button"
@@ -227,7 +233,7 @@ const ConfirmTokenCreationModal: React.FC = () => {
                 disabled={isSubmitting || !isValid}
                 data-tid="create-token"
               >
-                Create my {tokenTypeName}
+                {t('tok.create', { type: tokenTypeName })}
               </Button>
             </Bottom>
           </Column>

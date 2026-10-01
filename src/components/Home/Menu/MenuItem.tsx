@@ -15,6 +15,7 @@ type MenuItemProps = {
   name: string;
   icon: string;
   selected: boolean;
+  tid?: string;
 };
 
 // A sidebar row, as in Finder or Mail: icon and name, a rounded highlight when chosen.
@@ -51,9 +52,10 @@ const MenuIcon = styled.span<MenuIconProps>`
   mask-image: url('${p => p.icon}');
 `;
 
-const MenuItem = ({ name, icon, selected, onClick }: MenuItemProps) => (
+const MenuItem = ({ name, icon, selected, onClick, tid }: MenuItemProps) => (
   <MenuItemRoot
     type="button"
+    data-tid={tid}
     onClick={onClick}
     selected={selected}
     aria-current={selected ? 'page' : undefined}

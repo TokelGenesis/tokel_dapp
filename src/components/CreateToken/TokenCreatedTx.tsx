@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { DEFAULT_NULL_MODAL } from 'store/models/environment';
 import { dispatch } from 'store/rematch';
 import {
@@ -32,6 +33,7 @@ const goToWallet = () => {
 };
 
 const TokenCreatedTx: React.FC = () => {
+  const t = useT();
   const { tokenTypeName, tokenTypeNameCapitalized } = useSelector(selectModalOptions) as {
     tokenType: TokenType;
     tokenTypeName: string;
@@ -61,7 +63,7 @@ const TokenCreatedTx: React.FC = () => {
     return (
       <div css={{ textAlign: 'center' }}>
         <Loader bgColor={V.color.modal.bg} />
-        <p>Broadcasting transaction...</p>
+        <p>{t('tok.broadcasting')}</p>
       </div>
     );
   }
@@ -69,24 +71,19 @@ const TokenCreatedTx: React.FC = () => {
   return (
     <div>
       <Title success={!hasError}>
-        {hasError ? `Failed to create ${tokenTypeName}` : `${tokenTypeNameCapitalized} created!`}
+        {hasError
+          ? t('tok.failed', { type: tokenTypeName })
+          : t('tok.created', { type: tokenTypeNameCapitalized })}
       </Title>
 
       {hasError ? (
         <>
-          <p>
-            An error has ocurred while broadcasting your {tokenTypeName}: {error}.
-          </p>
-          <p>
-            Please confirm that no transaction has been broadcast and try again in a few minutes.
-          </p>
+          <p>{t('tok.errBroadcast', { type: tokenTypeName, error: String(error) })}</p>
+          <p>{t('tok.errCheck')}</p>
           <ExplorerLink txid={address} type="address" />
         </>
       ) : (
-        <p>
-          A transaction has been broadcast creating your token. Please check your wallet in a few
-          minutes.
-        </p>
+        <p>{t('tok.sentText')}</p>
       )}
 
       {Boolean(txId) && (
@@ -97,11 +94,11 @@ const TokenCreatedTx: React.FC = () => {
 
       {hasError ? (
         <Button type="button" theme="danger" onClick={closeModal}>
-          Go back
+          {t('tok.back')}
         </Button>
       ) : (
         <Button type="button" theme="success" onClick={goToWallet}>
-          Go to wallet
+          {t('tok.toWallet')}
         </Button>
       )}
     </div>
