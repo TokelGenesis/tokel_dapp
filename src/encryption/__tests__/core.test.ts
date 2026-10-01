@@ -49,7 +49,8 @@ afterAll(() => fs.rmSync(mockHome, { recursive: true, force: true }));
 
 it('uses an isolated temp home', () => {
   expect(mockHome.startsWith(os.tmpdir())).toBe(true);
-  expect(USER_WALLET_DIR).toBe(path.join(mockHome, '.tokel-wallets'));
+  // same folder on every OS (Windows accepts the '/' the app has always used: existing wallets stay where they are)
+  expect(path.resolve(USER_WALLET_DIR)).toBe(path.join(mockHome, '.tokel-wallets'));
 });
 
 describe('wallet encryption', () => {
