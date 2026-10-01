@@ -38,6 +38,7 @@ export const selectMyTokenDetails = (state: RootState) =>
 export const selectChosenAsset = (state: RootState) => state.wallet.chosenAsset;
 
 export const selectLoginFeedback = (state: RootState) => state.environment.loginFeedback ?? null;
+export const selectLoginConfirm = (state: RootState) => state.environment.loginConfirm ?? null;
 export const selectEnvError = (state: RootState) => state.environment.error ?? null;
 export const selectAssets = (state: RootState) => state.wallet.assets;
 

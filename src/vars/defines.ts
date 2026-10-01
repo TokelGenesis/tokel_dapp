@@ -18,7 +18,9 @@ export enum IpfsAction {
 // TODO move to user settings?
 export const DEFAULT_IPFS_FALLBACK_GATEWAY = 'https://ipfs.io/ipfs';
 
-export const TOKEL_PRICE_URL = 'https://price.tokel.io';
+// price.tokel.io (the original team's feed) is offline; no price is shown until a trustworthy feed exists.
+// Never point this at a domain we don't control: whoever holds it decides the price the wallet shows.
+export const TOKEL_PRICE_URL = '';
 export const TOKEL_PRICE_UPDATE_PERIOD_MS = 7_200_000; // two hours
 
 export const SIZES = {

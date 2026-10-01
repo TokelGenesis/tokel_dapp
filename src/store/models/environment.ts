@@ -17,6 +17,7 @@ export type EnvironmentState = {
   tokenDetails: Record<string, TokenDetail>;
   tokelPriceUSD?: number;
   loginFeedback: string;
+  loginConfirm: string; // address a free-text key would open, waiting for the user to confirm it
   error: string;
   nspvStatus: boolean;
   networkPrefs: NetworkPrefs;
@@ -47,6 +48,7 @@ export default createModel<RootModel>()({
     tokenDetails: {},
     tokelPriceUSD: null,
     loginFeedback: null,
+    loginConfirm: null,
     error: null,
     nspvStatus: true,
     networkPrefs: {
@@ -80,6 +82,7 @@ export default createModel<RootModel>()({
     },
     SET_TOKEL_PRICE_USD: (state, tokelPriceUSD: number) => ({ ...state, tokelPriceUSD }),
     SET_LOGIN_FEEDBACK: (state, loginFeedback: string) => ({ ...state, loginFeedback }),
+    SET_LOGIN_CONFIRM: (state, loginConfirm: string) => ({ ...state, loginConfirm }),
     SET_ERROR: (state, error: string) => ({ ...state, error }),
     UPDATE_NSPV_STATUS: (state, nspvStatus: boolean) => ({ ...state, nspvStatus }),
     SET_NETWORK: (state, networkPrefs: NetworkPrefs) => ({ ...state, networkPrefs }),

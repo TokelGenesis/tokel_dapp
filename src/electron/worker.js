@@ -1,5 +1,6 @@
 const { parentPort } = require('worker_threads');
 const sb = require('satoshi-bitcoin');
+const bip39 = require('bip39');
 const BN = require('bn.js');
 
 // Same as parseBigNumObject in helpers.ts TODO: don't repeat myself
@@ -61,15 +62,33 @@ class BitgoSingleton {
     this.connection?.close();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async [BitgoAction.RECONNECT]() {
-    try {
-      ccbasic.cryptoconditions = await ccimp;
-      this.connection = await nspvConnect({ network: this.network }, {});
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
+    if (this.connecting) return this.connecting; // one attempt at a time; callers share it
+    this.connecting = (async () => {
+      try {
+        ccbasic.cryptoconditions = await ccimp;
+        this.connection = await nspvConnect({ network: this.network }, {});
+        return true;
+      } catch (e) {
+        console.log(e);
+        return false;
+      } finally {
+        this.connecting = null;
+      }
+    })();
+    return this.connecting;
+  }
+
+  /**
+   * Calls that need the network wait for the connection instead of failing: logging in right after the app
+   * starts used to ask for the balance before nSPV was connected, get "Not connected", and stay on
+   * "Trying to connect to nspv..." for good.
+   */
+  async ensureConnected() {
+    if (this.connection && this.connection.length !== 0) return;
+    await this[BitgoAction.RECONNECT]();
+    if (!this.connection || this.connection.length === 0) {
+      throw new Error('Not connected');
     }
   }
 
@@ -85,9 +104,16 @@ class BitgoSingleton {
    *    result: "success"
    *  }
    */
-  async [BitgoAction.LOGIN]({ key }) {
+  async [BitgoAction.LOGIN]({ key, confirmed = false }) {
     try {
-      this.wif = general.keyToWif(key, this.network);
+      // Any text opens a wallet (it is hashed into a key, as in Agama), so a typo in a seed phrase silently opens
+      // another, empty wallet. Unless the key is a WIF or a valid BIP39 phrase (checksum included), the address is
+      // shown first and the wallet opens only once the user confirms it is theirs.
+      const wif = general.keyToWif(key, this.network);
+      if (!confirmed && wif !== key && !bip39.validateMnemonic(key)) {
+        return { result: 'confirm', address: ECPair.fromWIF(wif, this.network).getAddress() };
+      }
+      this.wif = wif;
       const keyPair = ECPair.fromWIF(this.wif, this.network);
       this.address = keyPair.getAddress();
       this.pubkeyBuffer = keyPair.getPublicKeyBuffer();
@@ -160,9 +186,7 @@ class BitgoSingleton {
    * }
    */
   async [BitgoAction.LIST_UNSPENT](data) {
-    if (!this.connection || this.connection.length === 0) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     const response = await ccutils.getNormalUtxos(this.connection, data.address, 0, 0);
     const ccUtxos = await cctokensv2.getAllTokensV2ForPubkey(
       this.connection,
@@ -386,9 +410,7 @@ class BitgoSingleton {
   }
 
   async [BitgoAction.LIST_TRANSACTIONS]({ address, skipCount = 0 }) {
-    if (!this.connection) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     // todo there is a better more dynamic way to implement transaction limit than hardcoded number
     const txIds = await ccutils.getTxids(this.connection, address, 0, skipCount, 100);
     const ids = txIds.txids.map(tx => tx.txid.reverse().toString('hex'));
@@ -406,9 +428,7 @@ class BitgoSingleton {
 
   // eslint-disable-next-line class-methods-use-this
   async [BitgoAction.BROADCAST]({ txHex }) {
-    if (!this.connection || this.connection.length === 0) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     return new Promise((resolve, reject) => {
       this.connection.nspvBroadcast(
         '0000000000000000000000000000000000000000000000000000000000000000',
@@ -429,9 +449,7 @@ class BitgoSingleton {
     const amountInSatoshi = sb.toSatoshi(amount);
     const satoshiBigNum = new BN(amountInSatoshi);
     const amountBigNum = new BN(amount);
-    if (!this.connection || this.connection.length === 0) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     const txHex = await general.create_normaltx(
       this.wif,
       address,
@@ -448,9 +466,7 @@ class BitgoSingleton {
   }
 
   async [BitgoAction.TOKEN_V2_TRANSFER]({ destpubkey, tokenid, amount }) {
-    if (!this.connection || this.connection.length === 0) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     const tx = await cctokensv2.tokensv2Transfer(
       this.connection,
       this.network,
@@ -469,9 +485,7 @@ class BitgoSingleton {
   }
 
   async [BitgoAction.TOKEN_V2_CREATE_TOKEL]({ name, supply, description, tokenData }) {
-    if (!this.connection || this.connection.length === 0) {
-      throw new Error('Not connected');
-    }
+    await this.ensureConnected();
     const tx = await cctokensv2.tokensv2CreateTokel(
       this.connection,
       this.network,

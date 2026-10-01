@@ -177,7 +177,11 @@ ipcMain.handle(
 ipcMain.handle('wallet:login', async (_, walletName: string, password: string) => {
   assertStrings(walletName, password);
   const data = await decrypt(walletName, Buffer.from(password));
-  bitgoWorker.postMessage({ type: BitgoAction.LOGIN, payload: { key: data.toString() } });
+  // a stored wallet: its key was accepted when the wallet was saved, so no second confirmation
+  bitgoWorker.postMessage({
+    type: BitgoAction.LOGIN,
+    payload: { key: data.toString(), confirmed: true },
+  });
 });
 
 ipcMain.handle(

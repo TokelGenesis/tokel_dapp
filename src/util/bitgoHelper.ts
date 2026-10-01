@@ -34,7 +34,7 @@ export type BitgoMessageParamList = {
   [BitgoAction.SET_NETWORK]: { network: NetworkType; overrides: Record<string, unknown> };
   [BitgoAction.RECONNECT]: undefined;
   [BitgoAction.NEW_ADDRESS]: undefined;
-  [BitgoAction.LOGIN]: { key: string };
+  [BitgoAction.LOGIN]: { key: string; confirmed?: boolean };
   [BitgoAction.LOGOUT]: undefined;
   [BitgoAction.LIST_UNSPENT]: { address: string };
   [BitgoAction.LIST_TRANSACTIONS]: { address: string; skipCount?: number };

@@ -102,6 +102,13 @@ const BitgoOrchestrator = () => {
           console.error(payload.error);
           return;
         }
+        if (payload.data?.result === 'confirm') {
+          // free text that is neither a private key nor a valid seed phrase: show the address it opens first
+          dispatch.environment.SET_LOGIN_FEEDBACK(null);
+          dispatch.environment.SET_LOGIN_CONFIRM(payload.data.address);
+          return;
+        }
+        dispatch.environment.SET_LOGIN_CONFIRM(null);
         dispatch.account.login({ data: payload.data });
         dispatch.environment.SET_LOGIN_FEEDBACK('Getting transactions...');
         const { address } = payload.data;
@@ -152,6 +159,11 @@ const BitgoOrchestrator = () => {
         if (payload.data) {
           dispatch.environment.SET_ERROR(null);
           dispatch.environment.UPDATE_NSPV_STATUS(true);
+          // connected again while logged in: ask for what failed before, instead of waiting forever
+          if (myAddress) {
+            sendToBitgo(BitgoAction.LIST_UNSPENT, { address: myAddress });
+            sendToBitgo(BitgoAction.LIST_TRANSACTIONS, { address: myAddress });
+          }
           return;
         }
       }

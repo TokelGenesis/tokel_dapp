@@ -26,6 +26,7 @@ const AppRoot = styled.div`
 `;
 
 const fetchTokelPrice = async () => {
+  if (!TOKEL_PRICE_URL) return;
   try {
     const priceJson = await axios(TOKEL_PRICE_URL, { timeout: 10000 });
     const price = Number(priceJson.data?.[0]?.price);

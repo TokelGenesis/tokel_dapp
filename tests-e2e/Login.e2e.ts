@@ -19,6 +19,8 @@ test('Can login with valid WIF', async t => {
   await t
     .typeText(wifInput, TEST_KEY)
     .click(loginButton)
+    // this 23-word test phrase is not a standard (checksummed) one, so the app shows its address first
+    .click(Selector('[data-tid="login-confirm-button"]'))
     .expect(sideMenu.exists)
     .ok({ timeout: 10000 });
 });
