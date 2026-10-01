@@ -71,9 +71,10 @@
     "extraResources": [
       "assets"
     ],
+    "npmRebuild": false,
     "publish": {
       "provider": "github",
-      "owner": "TokelPlatform",
+      "owner": "TokelGenesis",
       "repo": "tokel_dapp",
       "releaseType": "draft",
       "publishAutoUpdate": false

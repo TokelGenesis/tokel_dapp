@@ -1,0 +1,33 @@
+# Tokel Genesis wallet release: run by hand (Actions > Release > Run workflow). Builds Windows, macOS and Linux
+# installers on GitHub's machines and attaches them to a DRAFT release, visible only to maintainers until published.
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Fail on known vulnerabilities in shipped dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: yarn audit --groups dependencies --level high
+      - run: yarn build
+      - run: yarn checks
+      - name: Package into a draft release
+        run: yarn package:publish:x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

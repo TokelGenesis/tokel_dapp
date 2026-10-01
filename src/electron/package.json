@@ -1,12 +1,12 @@
 {
   "name": "tokel_app",
   "productName": "tokelPlatform",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Komodo ecosystem’s Token Platform",
   "main": "./main.js",
   "author": {
     "name": "Tokel",
-    "url": "https://tokel.io"
+    "url": "https://tokelgenesis.github.io"
   },
   "scripts": {
     "electron-rebuild": "node -r ../../config/scripts/BabelRegister.js ../../config/scripts/ElectronRebuild.js",
