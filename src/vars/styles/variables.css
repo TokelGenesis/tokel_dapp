@@ -1,70 +1,154 @@
 /* eslint-ignore */
-:root {
-  --color-white: #ffffff;
-  --color-button-black-theme: #18202b;
-  --color-black: #1b2431;
-  --color-almostBlack: #222c3c;
-  --color-almostBlack2: #283447;
-  --color-lighterBlack: #313d4f;
-  --color-purple: #8050ef;
-  --color-lightpurple: #687bf7;
-  --color-lessSaturatedBlue: #5362c4;
-  --color-gray: #7f8fa4;
-  --color-darkerGray: #8492b4;
-  --color-slateGray: #354353;
-  --color-danger: #e6195f;
-  --color-growth: #2ac940;
-  --color-growth-darker: #1d8c2c;
-  --color-spinner-aqua: #3ff9dc;
+/*
+ * Tokel Genesis desktop wallet: design tokens (--tg-*), light and dark, macOS-like.
+ * The theme is chosen by body[data-theme] (set from the appearance setting: system / light / dark); before the
+ * app has set it, the system's preference applies. The older variable names further down map onto these tokens,
+ * so every screen follows the theme.
+ */
+:root,
+body[data-theme='light'] {
+  color-scheme: light;
+  --tg-bg: #f5f5f7;
+  --tg-bg-2: #ececf0;
+  --tg-sidebar: rgba(236, 236, 240, 0.82);
+  --tg-surface: #ffffff;
+  --tg-surface-2: #fbfbfd;
+  --tg-fill: rgba(0, 0, 0, 0.05);
+  --tg-fill-hover: rgba(0, 0, 0, 0.08);
+  --tg-fill-strong: rgba(0, 0, 0, 0.12);
+  --tg-separator: rgba(0, 0, 0, 0.08);
+  --tg-border: rgba(0, 0, 0, 0.12);
+  --tg-text: #1d1d1f;
+  --tg-text-2: #5e5e64;
+  --tg-text-3: #86868c;
+  --tg-accent: #c2410c;
+  --tg-accent-hover: #ad3a0b;
+  --tg-accent-text: #b8470a;
+  --tg-accent-soft: rgba(232, 89, 12, 0.11);
+  --tg-on-accent: #ffffff;
+  --tg-brand-2: #6d4fe0;
+  --tg-success: #1e7f37;
+  --tg-success-soft: rgba(36, 138, 61, 0.12);
+  --tg-danger: #c4161c;
+  --tg-danger-soft: rgba(215, 0, 21, 0.1);
+  --tg-warning: #9a5b00;
+  --tg-warning-soft: rgba(255, 159, 10, 0.16);
+  --tg-focus: rgba(232, 89, 12, 0.45);
+  --tg-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 1px rgba(0, 0, 0, 0.03);
+  --tg-shadow-2: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --tg-shadow-3: 0 24px 60px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+  --tg-overlay: rgba(0, 0, 0, 0.28);
+  --tg-input: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+body[data-theme='dark'] {
+  color-scheme: dark;
+  --tg-bg: #1b1b1f;
+  --tg-bg-2: #232328;
+  --tg-sidebar: rgba(38, 38, 44, 0.82);
+  --tg-surface: #26262c;
+  --tg-surface-2: #2d2d34;
+  --tg-fill: rgba(255, 255, 255, 0.07);
+  --tg-fill-hover: rgba(255, 255, 255, 0.11);
+  --tg-fill-strong: rgba(255, 255, 255, 0.16);
+  --tg-separator: rgba(255, 255, 255, 0.08);
+  --tg-border: rgba(255, 255, 255, 0.13);
+  --tg-text: #f5f5f7;
+  --tg-text-2: #b4b4bc;
+  --tg-text-3: #85858d;
+  --tg-accent: #c2410c;
+  --tg-accent-hover: #d9480f;
+  --tg-accent-text: #ffa45c;
+  --tg-accent-soft: rgba(255, 138, 61, 0.16);
+  --tg-on-accent: #ffffff;
+  --tg-brand-2: #9b86ff;
+  --tg-success: #4cd964;
+  --tg-success-soft: rgba(48, 209, 88, 0.16);
+  --tg-danger: #ff6961;
+  --tg-danger-soft: rgba(255, 69, 58, 0.16);
+  --tg-warning: #ffcc4d;
+  --tg-warning-soft: rgba(255, 204, 0, 0.14);
+  --tg-focus: rgba(255, 138, 61, 0.5);
+  --tg-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --tg-shadow-2: 0 6px 20px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --tg-shadow-3: 0 24px 70px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --tg-overlay: rgba(0, 0, 0, 0.5);
+  --tg-input: rgba(0, 0, 0, 0.18);
+}
 
-  --color-window-close: #ff4f4f;
-  --color-window-close-hover: #f94747;
-  --color-window-minimize: #ffbb00;
-  --color-window-minimize-hover: #efa900;
-  --color-window-maximize: #00cd19;
-  --color-window-maximize-hover: #00b318;
+/* declared on body too: a variable that uses another is worked out where it is declared, so these must sit
+   next to body[data-theme] to follow the theme */
+:root,
+body {
+  --tg-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'PingFang TC', 'Noto Sans TC',
+    'Microsoft JhengHei', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --tg-font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang TC',
+    'Noto Sans TC', 'Microsoft JhengHei', Roboto, sans-serif;
+  --tg-font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --tg-radius-s: 6px;
+  --tg-radius: 10px;
+  --tg-radius-l: 14px;
+  --tg-brand-gradient: linear-gradient(120deg, #ff7a1a 0%, #e8590c 35%, #7a5cff 100%);
 
-  --color-modal-overlay: rgba(0, 0, 0, 0.8);
-  --color-modal-bg: #212b3b;
-  --color-modal-border: #2e3d51;
-  --color-modal-fg: #ffffff;
-  --color-modal-fg-lc: #7b90a6;
+  /* ---- older names, mapped onto the tokens ---- */
+  --color-white: var(--tg-text);
+  --color-button-black-theme: var(--tg-fill);
+  --color-black: var(--tg-bg);
+  --color-almostBlack: var(--tg-surface);
+  --color-almostBlack2: var(--tg-separator);
+  --color-lighterBlack: var(--tg-border);
+  --color-purple: var(--tg-accent-text);
+  --color-lightpurple: var(--tg-accent-text);
+  --color-lessSaturatedBlue: var(--tg-accent-hover);
+  --color-gray: var(--tg-text-2);
+  --color-darkerGray: var(--tg-text-3);
+  --color-slateGray: var(--tg-fill-strong);
+  --color-danger: var(--tg-danger);
+  --color-growth: var(--tg-success);
+  --color-growth-darker: var(--tg-success);
+  --color-spinner-aqua: var(--tg-accent-text);
 
-  --color-link: var(--color-lightpurple);
-  --color-link-hover: var(--color-lessSaturatedBlue);
+  --color-window-close: #ff5f57;
+  --color-window-close-hover: #e0443e;
+  --color-window-minimize: #febc2e;
+  --color-window-minimize-hover: #dea123;
+  --color-window-maximize: #28c840;
+  --color-window-maximize-hover: #1aab29;
 
-  --border-dark: 1px solid var(--color-lighterBlack);
-  --border-purple: 1px solid var(--color-lightpurple);
-  --border-widgets: 1px solid var(--color-almostBlack2);
-  --border-radius: 4px;
-  --border-radius-big: 8px;
+  --color-modal-overlay: var(--tg-overlay);
+  --color-modal-bg: var(--tg-surface);
+  --color-modal-border: var(--tg-separator);
+  --color-modal-fg: var(--tg-text);
+  --color-modal-fg-lc: var(--tg-text-2);
+
+  --color-link: var(--tg-accent-text);
+  --color-link-hover: var(--tg-accent-hover);
+
+  --border-dark: 1px solid var(--tg-border);
+  --border-purple: 1px solid var(--tg-accent);
+  --border-widgets: 1px solid var(--tg-separator);
+  --border-radius: 8px;
+  --border-radius-big: 12px;
 
   --modal-content-height: 340px;
 
-  /* --gradient-purple-direct: linear-gradient(
-    167.56deg,
-    #687bf7 9.04%,
-    #8050ef 90.96%
-  ); */
-  --gradient-purple-direct: linear-gradient(180deg, #687bf7 0%, #8050ef 97.78%);
-
-  --gradient-purple-horizontal: linear-gradient(97.43deg, #973af5 0%, #4ca6fe 100%);
-  --gradient-gray: linear-gradient(180deg, #516173 3.03%, #3b4857 97.78%);
-
-  --gradient-green-receive: linear-gradient(180deg, #50efa3 0%, #68ddf7 100%);
-  --gradient-red-send: linear-gradient(180deg, #e250ef 0%, #f76868 100%);
-
-  --gradient-spinner-aqua: linear-gradient(
-    0deg,
-    rgba(63, 249, 220, 0.1) 33%,
-    var(--color-spinner-aqua) 100%
-  );
+  --gradient-purple-direct: linear-gradient(180deg, #d9480f 0%, #c2410c 100%);
+  --gradient-purple-horizontal: var(--tg-brand-gradient);
+  --gradient-gray: var(--tg-fill-strong);
+  --gradient-green-receive: linear-gradient(180deg, #34c759 0%, #30b0c7 100%);
+  --gradient-red-send: linear-gradient(180deg, #ff7a1a 0%, #e8590c 100%);
+  --gradient-spinner-aqua: linear-gradient(0deg, transparent 33%, var(--tg-accent-text) 100%);
 
   --font-size-h1: 1.625rem; /** 26px **/
   --font-size-h2: 1.25rem; /** 20px **/
-  --font-size-h3: 1.125rem; /** 18px **/
-  --font-size-p: 1rem; /** 16px **/
-  --font-size-additional-p: 0.875rem; /** 14px **/
+  --font-size-h3: 1.0625rem; /** 17px **/
+  --font-size-p: 0.9375rem; /** 15px **/
+  --font-size-additional-p: 0.8125rem; /** 13px **/
+  --font-size-small-p: 0.8125rem; /** 13px **/
   --font-size-tiny-p: 0.75rem; /** 12px **/
-  --font-size-tinytiny-p: 0.5rem; /** 8px **/
+  --font-size-tinytiny-p: 0.625rem; /** 10px **/
 }

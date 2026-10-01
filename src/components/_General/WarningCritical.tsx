@@ -7,21 +7,30 @@ import warning from 'assets/warningIcon.svg';
 const WarningCriticalRoot = styled.div`
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 520px;
+  padding: 12px 14px;
+  border-radius: var(--tg-radius);
+  background: var(--tg-warning-soft);
   img {
-    margin-right: 0.5rem;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
   }
   h3,
   p {
     margin: 0;
   }
   h3 {
-    color: var(--color-white);
-    font-weight: 400;
-    font-size: var(--font-size-p);
+    color: var(--tg-text);
+    font-weight: 600;
+    font-size: 13px;
   }
   p {
-    color: var(--color-gray);
-    font-size: var(--font-size-p);
+    color: var(--tg-text-2);
+    font-size: 12.5px;
+    margin-top: 2px;
   }
 `;
 

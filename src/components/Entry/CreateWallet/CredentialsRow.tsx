@@ -8,42 +8,51 @@ type CredentialsRowProps = {
   label: string;
   sublabel: string;
   credential: string;
+  tid?: string;
 };
 
-const Label = styled.p`
-  color: var(--color-gray);
-  margin: 0.5rem 0 0 0;
-  font-size: 12px;
-  span {
-    opacity: 0.7;
+const Row = styled.div`
+  padding: 12px 14px;
+  & + & {
+    border-top: 1px solid var(--tg-separator);
   }
 `;
 
-const Info = styled.div`
+const Head = styled.div`
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  p {
-    margin: 0 0.5rem 0 0;
-    font-size: var(--font-size-additional-p);
-    color: var(--color-danger);
-    width: 400px;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  b {
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  span {
+    font-size: 12px;
+    color: var(--tg-text-2);
   }
 `;
 
-const CredentialsRow = ({ label, sublabel, credential }: CredentialsRowProps) => {
-  return (
-    <div>
-      <Label>
-        {label} <span> {sublabel}</span>
-      </Label>
-      <Info>
-        <p>{credential}</p>
-        <CopyToClipboard textToCopy={credential} />
-      </Info>
-    </div>
-  );
-};
+const Secret = styled.p`
+  margin: 0;
+  font-family: var(--tg-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+  user-select: text;
+`;
+
+const CredentialsRow = ({ label, sublabel, credential, tid }: CredentialsRowProps) => (
+  <Row>
+    <Head>
+      <div>
+        <b>{label}</b> <span>{sublabel}</span>
+      </div>
+      <CopyToClipboard textToCopy={credential} />
+    </Head>
+    <Secret data-tid={tid}>{credential}</Secret>
+  </Row>
+);
 
 export default CredentialsRow;

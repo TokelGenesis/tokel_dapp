@@ -7,9 +7,10 @@ type ErrorMessageProps = {
 };
 
 const StyledError = styled.div`
-  height: 1rem;
+  min-height: 1rem;
   margin: 0.5rem 0;
-  color: var(--color-danger);
+  color: var(--tg-danger);
+  font-size: 12.5px;
 `;
 
 const ErrorMessage = ({ children }: ErrorMessageProps) => {

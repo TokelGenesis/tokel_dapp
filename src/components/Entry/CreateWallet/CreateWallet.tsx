@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { selectKey, selectSeed } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
 
@@ -14,20 +15,39 @@ interface ProgressProps {
   width: string;
 }
 
-const ProgressBarAnimation = styled.div<ProgressProps>`
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  height: 5px;
-  width: ${props => props.width ?? '0%'};
-  background: var(--gradient-purple-horizontal);
-  transition: 0.3s;
+// "Step 1 of 3" with a thin bar, at the top of the card
+const Progress = styled.div<ProgressProps>`
+  width: 100%;
+  margin-bottom: 18px;
+  span {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--tg-text-3);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  div {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--tg-fill);
+    overflow: hidden;
+  }
+  div::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: ${props => props.width ?? '0%'};
+    background: var(--tg-brand-gradient);
+    transition: width 0.3s ease;
+  }
 `;
 
 const CreateWalletRoot = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 `;
 
 const STEP1 = 1;
@@ -36,6 +56,7 @@ const STEP3 = 3;
 const STEP4 = 4;
 
 const CreateWallet = () => {
+  const t = useT();
   const [step, setStep] = React.useState(STEP1);
   const back = () => setStep(step - 1);
   const forward = () => setStep(step + 1);
@@ -52,12 +73,15 @@ const CreateWallet = () => {
 
   return (
     <CreateWalletRoot>
-      <ProgressBarAnimation width={`${(step - 1) * 25}%`} />
+      <Progress width={`${(Math.min(step, STEP3) / 3) * 100}%`}>
+        <span>{t('create.step', { n: Math.min(step, STEP3) })}</span>
+        <div />
+      </Progress>
       {step === STEP1 && <GeneratedCredential wifkey={key} seed={seed} forward={forward} />}
       {step === STEP2 && (
         <ConfirmString
-          title="Confirm Your Seed Phrase"
-          desc="You will use your seed phrase in case you need to restore access to your account. Please confirm it."
+          title={t('create.confirmSeedTitle')}
+          desc={t('create.confirmSeedText')}
           originalString={seed}
           goBack={back}
           forward={forward}
@@ -65,8 +89,8 @@ const CreateWallet = () => {
       )}
       {(step === STEP3 || step === STEP4) && (
         <ConfirmString
-          title="Confirm Your WIF/Private Key"
-          desc="Your key is important for you to login to your account. Make sure you copied it to a safe place. Please confirm it."
+          title={t('create.confirmKeyTitle')}
+          desc={t('create.confirmKeyText')}
           originalString={key}
           goBack={() => {
             back();
@@ -79,7 +103,9 @@ const CreateWallet = () => {
           }}
         />
       )}
-      <div style={{ height: '30px' }}>{showSpinner && <Spinner />}</div>
+      <div style={{ height: '30px', display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+        {showSpinner && <Spinner />}
+      </div>
     </CreateWalletRoot>
   );
 };

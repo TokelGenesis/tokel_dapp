@@ -9,14 +9,15 @@ type InputProps = {
 
 const Styled = styled.button`
   border: none;
-  color: var(--color-link);
-  text-decoration: underline;
+  color: var(--tg-accent-text);
   background-color: transparent;
-  font-size: var(--font-size-p);
-  transition: 0.2s;
-
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--tg-radius-s);
+  transition: background 0.15s ease;
   &:hover {
-    color: var(--color-link-hover);
+    background: var(--tg-accent-soft);
   }
 `;
 

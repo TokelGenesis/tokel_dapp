@@ -9,6 +9,8 @@
       "electron*": ["src/electron*"],
       "encryption*": ["src/encryption*"],
       "hooks*": ["src/hooks*"],
+      "i18n": ["src/i18n/index.ts"],
+      "i18n/*": ["src/i18n/*"],
       "store*": ["src/store*"],
       "util*": ["src/util*"],
       "vars*": ["src/vars*"],

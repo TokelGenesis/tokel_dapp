@@ -3,67 +3,78 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import tokelIcon from 'assets/logo.svg';
-import { V } from 'util/theming';
 import { PORTFOLIO_ITEM_HEIGHT_PX } from 'vars/defines';
 
 type PortfolioItemRootProps = { selected: boolean };
 
+// a row in the asset list; the chosen one gets the accent tint, like a selected sidebar row
 const PortfolioItemRoot = styled.div<PortfolioItemRootProps>`
   display: flex;
   align-items: center;
-  min-height: ${PORTFOLIO_ITEM_HEIGHT_PX}px;
-  height: ${PORTFOLIO_ITEM_HEIGHT_PX}px;
-  background-color: ${props =>
-    props.selected ? 'var(--color-almostBlack2)' : 'var(--color-almostBlack))'};
-  border-left: 2px solid transparent;
-  border-image: ${props => (props.selected ? 'var(--gradient-purple-direct) 1 100%' : 'none')};
-  color: var(--color-white);
+  flex-shrink: 0;
+  min-height: ${PORTFOLIO_ITEM_HEIGHT_PX - 8}px;
+  margin: 2px 8px;
+  padding: 8px 10px;
+  border-radius: var(--tg-radius);
+  background-color: ${props => (props.selected ? 'var(--tg-accent-soft)' : 'transparent')};
+  color: var(--tg-text);
   cursor: pointer;
   flex-direction: row;
-  padding: 8px 24px;
+  transition: background 0.12s ease;
   &:hover {
-    background-color: var(--color-almostBlack2);
+    background-color: ${props => (props.selected ? 'var(--tg-accent-soft)' : 'var(--tg-fill)')};
   }
 `;
 
 const IconWrapper = styled.div`
-  display: block;
-  height: 32px;
-  width: 32px;
+  flex-shrink: 0;
+  height: 36px;
+  width: 36px;
+  img {
+    width: 36px;
+    height: 36px;
+  }
 `;
 
 const Information = styled.div`
   display: flex;
   flex: 1;
-  margin-left: 8px;
+  min-width: 0;
   flex-direction: column;
   justify-content: center;
-  padding-left: 8px;
+  padding-left: 10px;
 `;
 
 const Name = styled.h3`
   margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const Price = styled.small`
-  color: ${V.color.frontSoft};
+  color: var(--tg-text-2);
+  font-weight: 400;
 `;
 
 const Amount = styled.p`
-  color: var(--color-gray);
-  margin: 0;
+  color: var(--tg-text-2);
+  font-size: 12px;
+  margin: 1px 0 0;
 `;
 
 const NFTBadge = styled.div`
-  padding: 0 6px;
-  border: 1px solid ${V.color.frontOp[50]};
-  border-radius: ${V.size.borderRadius};
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--tg-accent-soft);
   &:before {
-    font-size: ${V.font.pSmaller};
-    color: ${V.color.cornflower};
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--tg-accent-text);
     content: 'NFT';
-    position: relative;
-    top: -1px;
   }
 `;
 
@@ -95,7 +106,7 @@ const PortfolioItem = ({
       )}
       <Information>
         <Name>
-          {name} <Price color={V.color.frontSoft}>{price}</Price>
+          {name} <Price>{price}</Price>
         </Name>
         <Amount>{subtitle}</Amount>
       </Information>

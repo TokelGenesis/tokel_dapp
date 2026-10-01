@@ -6,9 +6,10 @@ import PrivateKeyForm from './PrivateKeyForm';
 
 const PrivKeyLoginRoot = styled.div`
   display: flex;
-  justify-items: center;
+  justify-content: center;
   align-items: center;
   flex: 1;
+  width: 100%;
 `;
 
 const PrivKeyLogin = () => {

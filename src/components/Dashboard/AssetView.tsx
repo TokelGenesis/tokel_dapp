@@ -9,6 +9,7 @@ import {
   selectTransactions,
   selectUnspentBalance,
 } from 'store/selectors';
+import { useT } from 'i18n';
 import { processPossibleBN } from 'util/helpers';
 import { LOCKED, ResourceType, SPENDABLE } from 'vars/defines';
 
@@ -20,15 +21,16 @@ import StandardWidget from './widgets/StandardWidget';
 const AssetViewRoot = styled.div`
   flex: 1;
   height: 100%;
-  margin-left: 20px;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  grid-gap: 15px;
+  grid-template-rows: minmax(250px, 1fr) minmax(220px, 1fr);
+  grid-gap: 16px;
   overflow-y: auto;
 `;
 
 const AssetView = (): React.ReactElement => {
+  const t = useT();
   const txs = useSelector(selectTransactions);
   const lockedTransactions = useSelector(selectLockedTransactions);
   const lockedSum = useSelector(selectLockedTransactionsBalance);
@@ -50,13 +52,13 @@ const AssetView = (): React.ReactElement => {
 
   return (
     <AssetViewRoot>
-      <StandardWidget title="Send" width={3} height={1}>
+      <StandardWidget title={t('dash.send')} width={3} height={1}>
         <TransferEmbed holdingSections={holdings} />
       </StandardWidget>
-      <StandardWidget title="Receive" width={3} height={1}>
+      <StandardWidget title={t('dash.receive')} width={3} height={1}>
         <WalletAddressesEmbed />
       </StandardWidget>
-      <StandardWidget title="Activity" width={6} height={1}>
+      <StandardWidget title={t('dash.activity')} width={6} height={1}>
         <ActivityListEmbed transactions={txs} resourceType={ResourceType.TOKEL} />
       </StandardWidget>
     </AssetViewRoot>

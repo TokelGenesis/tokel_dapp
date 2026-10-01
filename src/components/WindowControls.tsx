@@ -5,13 +5,10 @@ import styled from '@emotion/styled';
 import { WindowControl } from 'vars/defines';
 
 const WindowControlRoot = styled.div`
-  margin-top: -5px;
-  margin-left: 9px;
-  width: 52px;
-  height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+  padding-left: 4px;
 `;
 
 interface WindowButtonProps {

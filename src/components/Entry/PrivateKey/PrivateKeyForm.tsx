@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import styled from '@emotion/styled';
 
 import password from 'assets/password.svg';
+import { TKey, useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectEnvError, selectLoginConfirm, selectLoginFeedback } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
-import { V } from 'util/theming';
 import { ErrorMessages } from 'vars/defines';
 
 import { Button } from 'components/_General/buttons';
@@ -15,40 +15,65 @@ import ErrorMessage from 'components/_General/ErrorMessage';
 import Input from 'components/_General/Input';
 import Spinner from 'components/_General/Spinner';
 import { BROKEN_WALLET_MSG } from 'components/BitgoOrchestrator';
-import { VSpaceMed, VSpaceSmall } from 'components/Dashboard/widgets/common';
+import { VSpaceSmall } from 'components/Dashboard/widgets/common';
 
 const LoginFormRoot = styled.div`
   width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+`;
+
+const Feedback = styled.p<{ bad?: boolean }>`
+  margin: 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: ${p => (p.bad ? 'var(--tg-danger)' : 'var(--tg-text-2)')};
+`;
+
+const Status = styled.div`
+  min-height: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 1rem;
-`;
-
-const Feedback = styled.p`
-  height: '1rem';
-  color: ${V.color.frontSoft};
+  justify-content: flex-start;
+  gap: 6px;
+  margin-top: 12px;
 `;
 
 const ConfirmBox = styled.div`
   width: 100%;
-  max-width: 420px;
-  padding: 0.9rem 1rem;
-  border-radius: 8px;
-  border: 1px solid ${V.color.cerise};
-  color: ${V.color.front};
-  font-size: 0.9rem;
-  line-height: 1.45;
+  padding: 14px 16px;
+  border-radius: var(--tg-radius);
+  background: var(--tg-warning-soft);
+  border: 1px solid var(--tg-separator);
+  color: var(--tg-text);
+  font-size: 13px;
+  line-height: 1.5;
   text-align: left;
   code {
     display: block;
-    margin: 0.5rem 0;
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: var(--tg-radius-s);
+    background: var(--tg-surface);
+    font-family: var(--tg-font-mono);
+    font-size: 12.5px;
     word-break: break-all;
     font-weight: 600;
   }
 `;
 
+// what the orchestrator reports, shown in the chosen language
+const FEEDBACK: Record<string, TKey> = {
+  'Trying to connect to nspv...': 'pk.connecting',
+  'Getting transactions...': 'pk.loading',
+  [BROKEN_WALLET_MSG]: 'pk.broken',
+};
+
 const LoginForm = () => {
+  const t = useT();
   const [loginValue, setLoginValue] = React.useState('');
   const [error, setError] = React.useState(null);
   const [showSpinner, setShowSpinner] = React.useState(false);
@@ -106,42 +131,49 @@ const LoginForm = () => {
         onKeyDown={e => e.key === 'Enter' && performLogin()}
         icon={password}
         value={loginValue}
-        placeholder="Key or Seed Phrase"
+        placeholder={t('pk.placeholder')}
         type="password"
+        width="100%"
         disabled={showSpinner}
       />
       <VSpaceSmall />
       {loginConfirm ? (
         <ConfirmBox data-tid="login-confirm">
-          This is not a standard 24-word seed phrase or private key. Any text opens a wallet, so a
-          small typo opens a different, empty wallet. This text opens:
+          {t('pk.confirmText')}
           <code data-tid="login-confirm-address">{loginConfirm}</code>
-          Continue only if this is your wallet&apos;s address.
+          {t('pk.confirmCheck')}
           <VSpaceSmall />
-          <Button onClick={confirmLogin} theme="purple" data-tid="login-confirm-button">
-            This is my wallet, log in
+          <Button
+            onClick={confirmLogin}
+            theme="purple"
+            customWidth="100%"
+            data-tid="login-confirm-button"
+          >
+            {t('pk.confirmGo')}
           </Button>
         </ConfirmBox>
       ) : (
         <Button
           onClick={performLogin}
           theme="purple"
+          customWidth="100%"
           disabled={showSpinner}
           data-tid="login-button"
         >
-          Login
+          {t('pk.login')}
         </Button>
       )}
-      <VSpaceMed />
-      <div style={{ height: '30px' }}>{showSpinner && <Spinner />}</div>
-      <div style={{ marginBottom: '1rem', height: '3rem' }}>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+      <Status aria-live="polite">
+        {showSpinner && <Spinner />}
+        {error && (
+          <ErrorMessage>{error === ErrorMessages.ENTER_WIF ? t('pk.enter') : error}</ErrorMessage>
+        )}
         {loginFeedback && (
-          <Feedback style={loginFeedback === BROKEN_WALLET_MSG ? { color: V.color.cerise } : {}}>
-            {loginFeedback}
+          <Feedback bad={loginFeedback === BROKEN_WALLET_MSG}>
+            {FEEDBACK[loginFeedback] ? t(FEEDBACK[loginFeedback]) : loginFeedback}
           </Feedback>
         )}
-      </div>
+      </Status>
     </LoginFormRoot>
   );
 };

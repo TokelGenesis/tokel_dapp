@@ -5,12 +5,11 @@ import { Global } from '@emotion/react';
 import styled from '@emotion/styled';
 import axios from 'axios';
 
-import { Platform, usePlatform } from 'hooks/platform';
 import { dispatch } from 'store/rematch';
-import { selectAccountReady, selectShowNetworkPrefs, selectTheme } from 'store/selectors';
+import { selectAccountReady, selectShowNetworkPrefs } from 'store/selectors';
+import { useApplyTheme } from 'util/prefs';
 import { cssVarStyle } from 'util/theming';
 import { TOKEL_PRICE_UPDATE_PERIOD_MS, TOKEL_PRICE_URL } from 'vars/defines';
-import { scrollbarStyle } from 'vars/styles/platformSpecific';
 
 import Entry from 'components/Entry/Entry';
 import Home from 'components/Home/Home';
@@ -41,12 +40,8 @@ const fetchTokelPrice = async () => {
 
 export default function App() {
   const accountReady = useSelector(selectAccountReady);
-  const themeName = useSelector(selectTheme);
   const showNetworkPrefs = useSelector(selectShowNetworkPrefs);
-
-  React.useEffect(() => {
-    document.body.dataset.theme = themeName;
-  }, [themeName]);
+  useApplyTheme(); // light / dark: the setting, or the system's
 
   React.useEffect(() => {
     fetchTokelPrice();
@@ -56,13 +51,17 @@ export default function App() {
     };
   }, []);
 
-  const isWindowsOrLinux = [Platform.WINDOWS, Platform.LINUX].includes(usePlatform());
-
   return (
     <AppRoot>
-      <Global styles={[cssVarStyle, isWindowsOrLinux && scrollbarStyle].filter(Boolean)} />
-      <TopBar />
-      {accountReady ? <Home /> : <Entry />}
+      <Global styles={cssVarStyle} />
+      {accountReady ? (
+        <Home />
+      ) : (
+        <>
+          <TopBar />
+          <Entry />
+        </>
+      )}
       {showNetworkPrefs && <NetworkPrefs />}
     </AppRoot>
   );

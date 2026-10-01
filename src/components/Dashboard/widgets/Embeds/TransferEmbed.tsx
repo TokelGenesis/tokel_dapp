@@ -3,12 +3,12 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { TKey, useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectCurrentTokenBalance, selectCurrentTokenInfo } from 'store/selectors';
 import { processPossibleBN } from 'util/helpers';
 import icons from 'util/icons';
-import { V } from 'util/theming';
-import { Colors, ModalName, ResourceType, TICKER } from 'vars/defines';
+import { Colors, LOCKED, ModalName, ResourceType, SPENDABLE, TICKER } from 'vars/defines';
 
 import { Button } from 'components/_General/buttons';
 import { EmbedContentContainer } from '../common';
@@ -17,65 +17,76 @@ const Holdings = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px 30px;
-  padding-top: 1rem;
+  padding: 14px 20px 18px;
   overflow-y: auto;
 `;
 
 const HoldingSection = styled.div`
   display: flex;
   flex-direction: column;
-  /* padding: 0.5rem; */
 `;
 
 const HoldingSectionRow = styled.div`
   display: flex;
-  column-gap: 2rem;
-  align-items: flex-start;
+  gap: 14px;
+  align-items: center;
   justify-content: flex-start;
-  margin-top: 2rem;
+  margin-top: 14px;
+  img {
+    width: 32px;
+    height: 32px;
+  }
 `;
 
 const HoldingSectionLabel = styled.h3`
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  font-size: ${V.font.h3};
-  color: ${V.color.frontSoft};
+  margin: 6px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tg-text-2);
 `;
+
 const HoldingSectionLabelCoin = styled.p`
-  font-size: ${V.font.pSmall};
-  color: ${V.color.slate};
-  text-transform: uppercase;
-  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tg-text-2);
+  margin: 0 0 2px;
 `;
 
 const HoldingSectionTimelock = styled.p`
-  font-size: ${V.font.pSmall};
-  margin-top: 0;
-  opacity: 0.6;
+  font-size: 12px;
+  margin: 0;
+  color: var(--tg-text-3);
 `;
 
 const HoldingSectionValueCoin = styled.h3`
-  margin: 0 0 0.5rem 0;
+  margin: 0;
+  font-family: var(--tg-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 `;
 
 const HoldingSectionValue = styled.span`
-  font-size: ${V.font.h1};
+  font-family: var(--tg-font-display);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 `;
 
 const HoldingsNFTMessage = styled.span`
-  margin-top: 1.75rem;
-  background-color: ${V.color.backHarder};
-  border: 1px solid ${V.color.backSoftest};
-  padding: 4px 14px;
-  border-radius: ${V.size.borderRadiusBig};
-  font-size: ${V.font.h3};
-  color: ${V.color.frontSofter};
-  text-align: center;
+  margin-top: 12px;
+  align-self: flex-start;
+  background-color: var(--tg-accent-soft);
+  color: var(--tg-accent-text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
 `;
 
 const MarginedButton = styled(Button)`
-  margin-top: 2rem;
+  margin-top: 18px;
 `;
 
 const Buttons = styled.div`
@@ -84,11 +95,16 @@ const Buttons = styled.div`
 `;
 
 const Note = styled.p`
-  font-size: var(--font-size-small-p);
-  color: var(--color-slate);
-  font-weight: 400;
-  margin-bottom: 0;
+  font-size: 12.5px;
+  color: var(--tg-text-2);
+  margin: 0;
 `;
+
+const LABELS: Record<string, TKey> = {
+  [SPENDABLE]: 'dash.spendable',
+  [LOCKED]: 'dash.locked',
+  holdings: 'dash.holdings',
+};
 
 const openSendModal = options => () =>
   dispatch.environment.SET_MODAL({ name: ModalName.SEND, options });
@@ -111,6 +127,8 @@ const renderValue = one => (
 );
 
 const TransferEmbed = ({ holdingSections }: TransferEmbedProps) => {
+  const t = useT();
+  const label = (l: string) => (LABELS[l] ? t(LABELS[l]) : l);
   const tokenInfo = useSelector(selectCurrentTokenInfo);
   const currentBalance = useSelector(selectCurrentTokenBalance);
   const isNFT = tokenInfo && tokenInfo.supply === 1;
@@ -120,15 +138,15 @@ const TransferEmbed = ({ holdingSections }: TransferEmbedProps) => {
   return (
     <EmbedContentContainer>
       <Holdings>
-        {!isToken && <Note>Your current holdings</Note>}
+        {!isToken && <Note>{t('dash.holdings')}</Note>}
         {isToken ? (
           <>
             {isNFT ? (
-              <HoldingsNFTMessage>This is an NFT. You own the only one!</HoldingsNFTMessage>
+              <HoldingsNFTMessage>{t('dash.nft')}</HoldingsNFTMessage>
             ) : (
               sections.map(section => (
                 <HoldingSection key={section.label}>
-                  <HoldingSectionLabel>{section.label}</HoldingSectionLabel>
+                  <HoldingSectionLabel>{label(section.label)}</HoldingSectionLabel>
                   <HoldingSectionValue>{processPossibleBN(section.value)}</HoldingSectionValue>
                 </HoldingSection>
               ))
@@ -139,29 +157,32 @@ const TransferEmbed = ({ holdingSections }: TransferEmbedProps) => {
                   // eslint-disable-next-line no-nested-ternary
                   type: isNFT ? ResourceType.NFT : ResourceType.FST,
                 })}
-                theme={Colors.TRANSPARENT}
+                theme={Colors.PURPLE}
+                customWidth="140px"
+                data-tid="send-token"
               >
-                Send
+                {t('dash.send')}
               </MarginedButton>
             </Buttons>
           </>
         ) : (
           sections.map(section => (
             <HoldingSectionRow key={section.label}>
-              <HoldingSection style={{ width: '30px' }}>
-                <div>
-                  <img src={icons[section.icon]} alt="section-icon" />
-                </div>
-              </HoldingSection>
-              <HoldingSection style={{ width: '250px' }}>
-                <HoldingSectionLabelCoin>{section.label}</HoldingSectionLabelCoin>
+              <img src={icons[section.icon]} alt="" />
+              <HoldingSection style={{ flex: 1, minWidth: 0 }}>
+                <HoldingSectionLabelCoin>{label(section.label)}</HoldingSectionLabelCoin>
                 {Array.isArray(section.value)
                   ? section.value.map(one => renderValue(one))
                   : renderValue(section)}
               </HoldingSection>
-              {section.label === 'Spendable' && (
-                <Button onClick={openSendModal({ type: ResourceType.TOKEL })} theme={Colors.PURPLE}>
-                  Send
+              {section.label === SPENDABLE && (
+                <Button
+                  onClick={openSendModal({ type: ResourceType.TOKEL })}
+                  theme={Colors.PURPLE}
+                  customWidth="120px"
+                  data-tid="send-tkl"
+                >
+                  {t('dash.send')}
                 </Button>
               )}
             </HoldingSectionRow>

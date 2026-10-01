@@ -8,7 +8,6 @@ type MenuItemRootProps = {
 
 type MenuIconProps = {
   icon: string;
-  selected: boolean;
 };
 
 type MenuItemProps = {
@@ -18,30 +17,34 @@ type MenuItemProps = {
   selected: boolean;
 };
 
-const MenuItemRoot = styled.div<MenuItemRootProps>`
+// A sidebar row, as in Finder or Mail: icon and name, a rounded highlight when chosen.
+const MenuItemRoot = styled.button<MenuItemRootProps>`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 80px;
+  gap: 10px;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  margin: 1px 0;
+  border: none;
+  border-radius: var(--tg-radius-s);
   font-size: 13px;
-  color: ${p => (p.selected ? 'var(--color-white)' : 'var(--color-darkerGray)')};
-  text-align: center;
-  margin-bottom: 1rem;
-  cursor: pointer;
+  font-weight: ${p => (p.selected ? 600 : 500)};
+  text-align: left;
+  color: ${p => (p.selected ? 'var(--tg-accent-text)' : 'var(--tg-text)')};
+  background: ${p => (p.selected ? 'var(--tg-accent-soft)' : 'transparent')};
+  transition: background 0.12s ease;
   &:hover {
-    opacity: 0.7;
-  }
-  p {
-    margin: 0.5rem 0 0 0;
+    background: ${p => (p.selected ? 'var(--tg-accent-soft)' : 'var(--tg-fill)')};
   }
 `;
 
-const MenuIcon = styled.div<MenuIconProps>`
-  height: 24px;
-  width: 24px;
-  background: ${p =>
-    p.selected ? 'var(--gradient-purple-horizontal)' : 'var(--color-darkerGray)'};
+const MenuIcon = styled.span<MenuIconProps>`
+  flex-shrink: 0;
+  height: 18px;
+  width: 18px;
+  background: currentColor;
+  opacity: 0.9;
   mask-size: contain;
   mask-position: center;
   mask-repeat: no-repeat;
@@ -49,9 +52,14 @@ const MenuIcon = styled.div<MenuIconProps>`
 `;
 
 const MenuItem = ({ name, icon, selected, onClick }: MenuItemProps) => (
-  <MenuItemRoot onClick={onClick} selected={selected}>
-    <MenuIcon icon={icon} selected={selected} />
-    <p>{name}</p>
+  <MenuItemRoot
+    type="button"
+    onClick={onClick}
+    selected={selected}
+    aria-current={selected ? 'page' : undefined}
+  >
+    <MenuIcon icon={icon} aria-hidden />
+    <span>{name}</span>
   </MenuItemRoot>
 );
 

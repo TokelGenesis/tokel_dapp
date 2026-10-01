@@ -37,8 +37,8 @@ export const ENCRYPTION_DEFAULTS = {
   DERIVATION_ITERATIONS: 10_000_000,
 };
 
-export const TOPBAR_HEIGHT_PX = 38;
-export const PORTFOLIO_ITEM_HEIGHT_PX = 86;
+export const TOPBAR_HEIGHT_PX = 52; // title bar / toolbar height (room for the macOS window buttons)
+export const PORTFOLIO_ITEM_HEIGHT_PX = 64;
 export const FEE = 0.0001;
 export const TOKEN_MARKER_FEE = 0.0001;
 export const FIAT_CURRENCY = 'USD';

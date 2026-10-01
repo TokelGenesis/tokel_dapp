@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectNspvStatus } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
-import { V } from 'util/theming';
 
 const NspvIndicatorRoot = styled.button`
   cursor: pointer;
@@ -14,36 +14,46 @@ const NspvIndicatorRoot = styled.button`
   border: none;
   display: flex;
   align-items: center;
-  margin: 0 2rem;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--tg-radius-s);
+  &:hover {
+    background: var(--tg-fill);
+  }
 `;
 
 type StatusIconProps = {
   nspvStatus: number;
 };
 
-const StatusIcon = styled.div<StatusIconProps>`
-  height: 12px;
-  width: 12px;
-  border-radius: 100%;
-  background-color: ${p => {
-    switch (p.nspvStatus) {
-      case 1:
-        return V.color.growth;
-      case 2:
-        return V.color.slate;
-      default:
-        return V.color.danger;
-    }
-  }};
+const StatusIcon = styled.span<StatusIconProps>`
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background-color: ${p =>
+    p.nspvStatus === 1
+      ? 'var(--tg-success)'
+      : p.nspvStatus === 2
+      ? 'var(--tg-warning)'
+      : 'var(--tg-danger)'};
+  box-shadow: 0 0 0 3px
+    ${p =>
+      p.nspvStatus === 1
+        ? 'var(--tg-success-soft)'
+        : p.nspvStatus === 2
+        ? 'var(--tg-warning-soft)'
+        : 'var(--tg-danger-soft)'};
 `;
 
 const StatusText = styled.span`
-  margin-left: 0.35rem;
-  font-size: ${V.font.p};
-  color: ${V.color.slate};
+  font-size: 12px;
+  color: var(--tg-text-2);
 `;
 
 const NspvIndicator = () => {
+  const t = useT();
   const nspvStatus = useSelector(selectNspvStatus);
   const [nspvLocalStatus, setNspvLocalStatus] = React.useState(1);
 
@@ -53,6 +63,9 @@ const NspvIndicator = () => {
 
   return (
     <NspvIndicatorRoot
+      type="button"
+      title={t('nspv.hint')}
+      data-tid="nspv-status"
       onClick={() => {
         setNspvLocalStatus(2);
         setTimeout(() => {
@@ -62,7 +75,15 @@ const NspvIndicator = () => {
       }}
     >
       <StatusIcon nspvStatus={nspvLocalStatus} />
-      <StatusText>nspv</StatusText>
+      <StatusText>
+        {t(
+          nspvLocalStatus === 1
+            ? 'nspv.online'
+            : nspvLocalStatus === 2
+            ? 'nspv.connecting'
+            : 'nspv.offline'
+        )}
+      </StatusText>
     </NspvIndicatorRoot>
   );
 };

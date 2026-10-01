@@ -156,6 +156,8 @@
       "electron": "<rootDir>/src/tests/mock/electron.js",
       "^assets/(.*)$": "<rootDir>/src/assets/$1",
       "^components/(.*)$": "<rootDir>/src/components/$1",
+      "^i18n$": "<rootDir>/src/i18n/index.ts",
+      "^i18n/(.*)$": "<rootDir>/src/i18n/$1",
       "^electron/(.*)$": "<rootDir>/src/electron/$1",
       "^encryption/(.*)$": "<rootDir>/src/encryption/$1",
       "^hooks/(.*)$": "<rootDir>/src/hooks/$1",

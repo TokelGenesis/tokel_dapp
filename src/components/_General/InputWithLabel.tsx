@@ -3,8 +3,6 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
-import { V } from 'util/theming';
-
 import { VSpaceMed } from 'components/Dashboard/widgets/common';
 import DottedLoader from './_Loaders/DottedLoader';
 import { ButtonSmall } from './buttons';
@@ -21,18 +19,18 @@ const AboveInputContainer = styled.div`
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  font-size: ${V.font.p};
-  padding: 0 6px;
-  margin-bottom: 6px;
+  font-size: 12px;
+  padding: 0 2px;
+  margin-bottom: 5px;
 `;
 
 const Label = styled.label`
-  color: var(--color-darkerGray);
+  color: var(--tg-text-2);
+  font-weight: 500;
 `;
 
 const Error = styled.span`
-  margin: 0.5rem 0;
-  color: var(--color-danger);
+  color: var(--tg-danger);
 `;
 
 const InputContainer = styled.div`

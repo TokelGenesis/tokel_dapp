@@ -15,7 +15,7 @@ import { Worker } from 'worker_threads';
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 
-import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, nativeTheme, shell } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
   REDUX_DEVTOOLS,
@@ -251,12 +251,13 @@ const createWindow = async () => {
     show: false,
     width: 1240,
     height: 720,
-    minHeight: 420,
+    minHeight: 560,
     center: true,
     frame: false,
     titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 18, y: 26 },
-    backgroundColor: '#222c3c',
+    trafficLightPosition: { x: 18, y: 20 }, // centred in the 52 px toolbar
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1b1b1f' : '#f5f5f7', // no flash of the wrong theme
+    minWidth: 900,
     resizable: true,
     icon: resolveAsset('icon.png'),
     webPreferences: {

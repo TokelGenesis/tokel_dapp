@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectAccountAddress, selectAccountPubKey, selectCurrentTokenInfo } from 'store/selectors';
 import { ModalName, ResourceType, TICKER } from 'vars/defines';
@@ -12,15 +13,15 @@ import { ReceiveModalOpts } from 'components/Modal/content/Receive';
 import { ColWrapper, EmbedContentContainer, RowWrapper } from '../common';
 
 const WalletAddressesEmbedRoot = styled(EmbedContentContainer)`
-  padding: 20px 30px 20px 30px;
+  padding: 12px 20px 18px;
+  gap: 10px;
+  overflow-y: auto;
 `;
 
 const Note = styled.p`
-  font-size: var(--font-size-small-p);
-  color: var(--color-slate);
-  font-weight: 400;
-  margin-bottom: 0;
-  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--tg-text-2);
+  margin: 0 0 2px;
 `;
 
 type WalletAddressWidgetProps = {
@@ -59,14 +60,12 @@ const DisplayWalletAddress = ({ title, modal_type }: WalletAddressWidgetProps) =
 };
 
 const WalletAddressesEmbed = () => {
+  const t = useT();
   return (
     <WalletAddressesEmbedRoot>
-      <Note>
-        You can receive {TICKER}, tokens, and NFTs in your address. You can use your public key to
-        search full balances of tokens on explorers
-      </Note>
-      <DisplayWalletAddress title="Address" modal_type="acc_address" />
-      <DisplayWalletAddress title="Public Key" modal_type="pub_key" />
+      <Note>{t('dash.receiveText', { ticker: TICKER })}</Note>
+      <DisplayWalletAddress title={t('dash.address')} modal_type="acc_address" />
+      <DisplayWalletAddress title={t('dash.pubkey')} modal_type="pub_key" />
     </WalletAddressesEmbedRoot>
   );
 };

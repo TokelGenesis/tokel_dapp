@@ -1,57 +1,85 @@
+/* Base styles: system font, calm type scale, macOS-like focus rings and scrollbars. Colours come from variables.css. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
-  background-color: var(--color-black);
-  color: var(--color-white);
-  font-family: source-sans-pro, sans-serif;
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  font-family: var(--tg-font);
+  font-size: 14px;
+  line-height: 1.45;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
   box-sizing: border-box;
 }
 
+::selection {
+  background: var(--tg-accent-soft);
+}
+
 button {
   cursor: pointer;
-  font-family: source-sans-pro, sans-serif;
+  font-family: inherit;
   -webkit-app-region: no-drag;
 }
 
+input,
+textarea,
+select {
+  font-family: inherit;
+  -webkit-app-region: no-drag;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--tg-font-display);
+  letter-spacing: -0.01em;
+  color: var(--tg-text);
+}
 h1 {
   font-size: var(--font-size-h1);
-  color: var(--color-white);
-  font-weight: 400;
+  font-weight: 600;
 }
 h2 {
   font-size: var(--font-size-h2);
-  font-weight: 400;
+  font-weight: 600;
 }
 h3 {
   font-size: var(--font-size-h3);
-  font-weight: 400;
+  font-weight: 600;
 }
 p {
   font-size: var(--font-size-p);
 }
 
 a {
-  color: var(--color-link);
+  color: var(--tg-accent-text);
+  text-decoration: none;
 }
-
 a:hover {
-  color: var(--color-link-hover);
+  text-decoration: underline;
 }
 
-input:focus {
+/* one focus ring everywhere, only for keyboard focus */
+:focus {
   outline: none;
-  border: var(--color-link-hover) solid 0.1px;
-  border-radius: var(--border-radius);
 }
-
+:focus-visible {
+  outline: 3px solid var(--tg-focus);
+  outline-offset: 2px;
+  border-radius: var(--tg-radius-s);
+}
+input:focus,
 textarea:focus {
-  outline: none;
-}
-
-button:focus {
   outline: none;
 }
 
@@ -59,4 +87,31 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* thin overlay-style scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--tg-fill-strong);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--tg-text-3);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

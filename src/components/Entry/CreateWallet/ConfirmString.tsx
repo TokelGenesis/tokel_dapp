@@ -2,11 +2,12 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
-import BackButton from 'components/_General/BackButton';
+import { useT } from 'i18n';
+
 import { Button } from 'components/_General/buttons';
 import ErrorMessage from 'components/_General/ErrorMessage';
+import Link from 'components/_General/Link';
 import TextArea from 'components/_General/TextArea';
-import { VSpaceMed } from 'components/Dashboard/widgets/common';
 
 type CredentialsRowProps = {
   title: string;
@@ -17,27 +18,35 @@ type CredentialsRowProps = {
 };
 
 const ConfirmStringRoot = styled.div`
-  position: relative;
-  display: grid;
-  justify-items: center;
-  align-items: center;
-  button:nth-of-type(1) {
-    position: absolute;
-    left: 6px;
-    top: 6px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  .head {
+    display: grid;
+    grid-template-columns: 32px 1fr 32px;
+    align-items: center;
   }
   h2 {
+    margin: 0;
+    font-size: 15px;
+    text-align: center;
+  }
+  .back {
+    display: flex;
+    justify-content: center;
     margin-top: 8px;
   }
   p {
-    color: var(--color-gray);
-    margin: 1rem 0 1rem 0;
-    width: 450px;
+    color: var(--tg-text-2);
+    margin: 10px 0 4px;
+    font-size: 13px;
     text-align: center;
   }
 `;
 
 const ConfirmString = ({ title, desc, goBack, forward, originalString }: CredentialsRowProps) => {
+  const t = useT();
   const [error, setError] = React.useState('');
   const [value, setValue] = React.useState('');
 
@@ -45,25 +54,31 @@ const ConfirmString = ({ title, desc, goBack, forward, originalString }: Credent
     if (value === originalString) {
       forward();
     } else {
-      setError('The value you entered is not the same as the generated one');
+      setError(t('create.mismatch'));
     }
   };
+
   return (
     <ConfirmStringRoot>
-      <BackButton onClick={goBack} />
       <h2>{title}</h2>
       <p>{desc}</p>
       <TextArea
         value={value}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.currentTarget.value)}
-        height="72px"
-        width="464px"
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          setError('');
+          setValue(e.currentTarget.value);
+        }}
+        height="84px"
+        width="100%"
+        margin="12px 0 0"
       />
       <ErrorMessage>{error}</ErrorMessage>
-      <Button onClick={handleClick} customWidth="170px" theme="purple">
-        Confirm
+      <Button onClick={handleClick} customWidth="100%" theme="purple" data-tid="create-confirm">
+        {t('create.confirm')}
       </Button>
-      <VSpaceMed />
+      <div className="back">
+        <Link onClick={goBack} linkText={t('create.prev')} />
+      </div>
     </ConfirmStringRoot>
   );
 };

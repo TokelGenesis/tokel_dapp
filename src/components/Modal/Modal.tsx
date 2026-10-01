@@ -17,7 +17,8 @@ export const ModalRoot = styled(motion.div)`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--color-modal-overlay);
+  background-color: var(--tg-overlay);
+  backdrop-filter: blur(6px);
   overflow: auto;
   z-index: 100;
   opacity: 0;
@@ -26,40 +27,55 @@ export const ModalRoot = styled(motion.div)`
 const ModalPanel = styled(motion.div)<{ size?: 'small' | 'medium' | 'large' }>`
   width: 100%;
   max-width: min(
-    ${props => (props.size === 'large' ? '980px' : props.size === 'medium' ? '780px' : '440px')},
-    90%
+    ${props => (props.size === 'large' ? '980px' : props.size === 'medium' ? '780px' : '460px')},
+    92%
   );
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  border: 1px solid var(--color-modal-border);
-  border-radius: var(--border-radius);
-  background-color: var(--color-modal-bg);
-  color: var(--color-modal-fg);
+  border: 1px solid var(--tg-separator);
+  border-radius: var(--tg-radius-l);
+  background-color: var(--tg-surface);
+  color: var(--tg-text);
+  box-shadow: var(--tg-shadow-3);
+  overflow: hidden;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 25px;
-  font-size: 1.4rem;
-  border-bottom: 1px solid var(--color-modal-border);
+  padding: 16px 16px 14px 22px;
+  font-family: var(--tg-font-display);
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--tg-separator);
 `;
 
-const StyledTimes = styled.div`
-  background-color: var(--color-modal-fg-lc);
-  height: 16px;
-  width: 16px;
-  mask: url(${timesSvg}) no-repeat center / cover;
-  cursor: pointer;
+const CloseButton = styled.button`
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: var(--tg-fill);
+  display: grid;
+  place-items: center;
   &:hover {
-    background-color: var(--color-modal-fg);
+    background: var(--tg-fill-hover);
+  }
+  span {
+    width: 11px;
+    height: 11px;
+    background-color: var(--tg-text-2);
+    mask: url(${timesSvg}) no-repeat center / contain;
   }
 `;
 
 const Content = styled.div`
-  padding: 25px;
+  padding: 20px 22px 22px;
+  overflow-y: auto;
 `;
 
 const close = () => dispatch.environment.SET_MODAL(DEFAULT_NULL_MODAL);
@@ -93,7 +109,9 @@ const Modal = ({ title, size, children }: ModalProps) => {
       >
         <Header>
           {title}
-          <StyledTimes onClick={close} />
+          <CloseButton type="button" onClick={close} aria-label="Close" data-tid="modal-close">
+            <span />
+          </CloseButton>
         </Header>
         <Content>{children}</Content>
       </ModalPanel>

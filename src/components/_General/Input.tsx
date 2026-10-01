@@ -17,12 +17,23 @@ type StyledInputProps = {
 };
 
 export const StyledInput = styled.input<StyledInputProps>`
-  background: var(--color-black);
-  border: var(--border-dark);
-  border-radius: var(--border-radius);
-  height: 40px;
+  background: var(--tg-input);
+  border: 1px solid var(--tg-border);
+  border-radius: var(--tg-radius-s);
+  height: 36px;
   padding-left: ${({ icon }) => (icon ? '2.25rem' : '0.75rem')};
-  color: var(--color-white);
+  padding-right: 0.75rem;
+  color: var(--tg-text);
+  font-size: 13px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  &::placeholder {
+    color: var(--tg-text-3);
+  }
+  &:focus {
+    border-color: var(--tg-accent);
+    box-shadow: 0 0 0 3px var(--tg-focus);
+  }
   ${({ width }) => (width === 'flex' ? { flexGrow: 1 } : { width })}
   ${({ disabled }) =>
     disabled

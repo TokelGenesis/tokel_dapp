@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import styled from '@emotion/styled';
 
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import {
   selectChosenToken,
@@ -11,7 +12,6 @@ import {
   selectTokenCount,
   selectUnspentBalance,
 } from 'store/selectors';
-import { V } from 'util/theming';
 
 import { WidgetContainer } from '../widgets/common';
 import PortfolioItem from './PortfolioItem';
@@ -22,13 +22,14 @@ const PortfolioRoot = styled(WidgetContainer)`
   width: 280px;
   display: flex;
   flex-direction: column;
-  padding: 0;
-  color: ${V.color.front};
+  flex-shrink: 0;
+  padding: 6px 0 0;
+  color: var(--tg-text);
   overflow: hidden;
-  border-radius: ${V.size.borderRadius};
 `;
 
 const Portfolio = (): React.ReactElement => {
+  const t = useT();
   const currentAsset = useSelector(selectCurrentAsset);
   const balance = useSelector(selectUnspentBalance);
   const chosenToken = useSelector(selectChosenToken);
@@ -44,7 +45,7 @@ const Portfolio = (): React.ReactElement => {
           key={currentAsset.name}
           name={`${balance} ${currentAsset.ticker}`}
           price={`${priceString}`}
-          subtitle={`${tokenCount} tokens`}
+          subtitle={tokenCount === 1 ? t('dash.token1') : t('dash.tokens', { n: tokenCount })}
           selected={!chosenToken}
           onClick={() => dispatch.wallet.SET_CHOSEN_TOKEN(null)}
           icon

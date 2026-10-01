@@ -5,7 +5,6 @@ import styled from '@emotion/styled';
 
 import { selectAccountAddress, selectChosenToken } from 'store/selectors';
 import { BitgoAction, sendToBitgo } from 'util/bitgoHelper';
-import { V } from 'util/theming';
 
 import AssetView from './AssetView';
 import Portfolio from './Portfolio/Portfolio';
@@ -13,11 +12,12 @@ import TokenView from './TokenView';
 
 const DashboardRoot = styled.div`
   display: flex;
+  gap: 18px;
   height: 100%;
   width: 100%;
   flex: 1;
-  background-color: ${V.color.backHard};
-  padding: 18px;
+  background-color: var(--tg-bg);
+  padding: 18px 20px 20px;
   margin: 0;
 `;
 

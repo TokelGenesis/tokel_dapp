@@ -16,15 +16,23 @@ type TextAreaType = {
 };
 
 const Styled = styled.textarea<TextAreaType>`
-  background: transparent;
-  border: var(--border-purple);
-  border-radius: var(--border-radius);
+  background: var(--tg-input);
+  border: 1px solid var(--tg-border);
+  border-radius: var(--tg-radius-s);
   height: ${p => p.height};
   width: ${p => p.width};
-  color: var(--color-white);
-  font-size: var(--font-size-additional-p);
-  font-family: var(--font-family-primary);
+  max-width: 100%;
+  padding: 0.6rem 0.75rem;
+  color: var(--tg-text);
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: var(--tg-font-mono);
   resize: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  &:focus {
+    border-color: var(--tg-accent);
+    box-shadow: 0 0 0 3px var(--tg-focus);
+  }
 `;
 
 const TextArea = ({ height, width, value, onChange, margin }: InputProps) => {

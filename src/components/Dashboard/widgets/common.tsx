@@ -1,25 +1,26 @@
 import styled from '@emotion/styled';
 
-import { V } from 'util/theming';
-
+// a card: the surface colour, a hairline edge, a soft shadow (macOS grouped content)
 export const WidgetContainer = styled.div`
-  background-color: ${V.color.back};
-  border: 1px solid ${V.color.backSofter};
-  border-radius: ${V.size.borderRadius};
+  background-color: var(--tg-surface);
+  border: 1px solid var(--tg-separator);
+  border-radius: var(--tg-radius-l);
+  box-shadow: var(--tg-shadow-1);
 `;
 
 export const WidgetTitle = styled.h2<{ bottomBorder?: boolean }>`
-  padding-left: 28px;
-  padding-top: 28px;
-  padding-bottom: 1rem;
+  padding: 16px 20px 12px;
   margin: 0;
-  color: ${V.color.front};
-  line-height: 24px;
-  border-bottom: 1px solid ${p => (p.bottomBorder ? V.color.backSoftest : 'transparent')};
+  color: var(--tg-text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  border-bottom: 1px solid ${p => (p.bottomBorder ? 'var(--tg-separator)' : 'transparent')};
 `;
 
 export const WidgetDivider = styled.hr`
-  border: 1px solid ${V.color.backSoftest};
+  border: none;
+  border-top: 1px solid var(--tg-separator);
 `;
 
 export const EmbedRoot = styled.div``;
@@ -28,12 +29,12 @@ export const EmbedContentContainer = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100% - 24px - 28px - 1rem);
+  height: calc(100% - 20px - 28px);
 `;
 
 export const GrayLabel = styled.p`
-  font-size: var(--font-size-additional-p);
-  color: var(--color-darkerGray);
+  font-size: 12.5px;
+  color: var(--tg-text-2);
   margin: 0;
   padding: 0;
 `;

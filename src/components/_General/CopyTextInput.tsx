@@ -2,7 +2,6 @@ import React from 'react';
 
 import styled from '@emotion/styled';
 
-import { V } from 'util/theming';
 import { Colors } from 'vars/defines';
 
 import CopyToClipboard from './CopyToClipboard';
@@ -14,40 +13,45 @@ type CopyProps = {
 };
 
 const TextInput = styled.div`
-  height: 60px;
-  border: 1px solid var(--color-lighterBlack);
-  box-sizing: border-box;
-  border-radius: 2px;
+  border: 1px solid var(--tg-separator);
+  border-radius: var(--tg-radius);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  background-color: ${V.color.backHard};
-  padding: 0.5rem;
-  margin-top: 1rem;
+  align-items: stretch;
+  background-color: var(--tg-surface-2);
+  padding: 8px 10px 8px 12px;
 `;
 
 const CopyWrapper = styled.div`
   width: 100%;
   display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const TextWrapper = styled.p`
-  width: 100%;
-  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin: 0;
-  color: ${V.color.slate};
+  font-family: var(--tg-font-mono);
+  font-size: 12.5px;
+  color: var(--tg-text);
   text-align: left;
+  user-select: text;
   &:hover {
-    color: ${V.color.cornflower};
+    color: var(--tg-accent-text);
     ${p => (p.onClick ? 'cursor: pointer' : '')}
   }
 `;
 
 const TextLabel = styled.p`
-  font-size: var(--font-size-small-p);
-  margin: 0;
-  margin-bottom: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tg-text-2);
+  margin: 0 0 3px;
 `;
 
 const CopyTextInput = ({ textToCopy, label, onClick }: CopyProps) => {

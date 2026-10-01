@@ -8,11 +8,11 @@ import checkIcon from 'assets/Check.svg';
 import clockIcon from 'assets/Clock.svg';
 import receiveIcon from 'assets/receiveIcon.svg';
 import withdrawIcon from 'assets/withdrawIcon.svg';
+import { TKey, useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectTokelPriceUSD } from 'store/selectors';
 import { formatDate, getUsdValue, processPossibleBN, toBitcoinAmount } from 'util/helpers';
 import { TxType } from 'util/nspvlib-mock';
-import { V } from 'util/theming';
 import { Colors, ModalName, ResourceType, TICKER } from 'vars/defines';
 
 import ExplorerLink from 'components/_General/ExplorerLink';
@@ -20,18 +20,19 @@ import InfoNote from 'components/_General/InfoNote';
 
 const ActivityListRoot = styled.div`
   overflow-y: auto;
+  padding: 4px 8px 8px;
 `;
 
 const ActivityListItem = styled.div`
   min-width: fit-content;
   width: 100%;
   display: flex;
-  border-bottom: 1px solid ${V.color.backSoftest};
+  border-radius: var(--tg-radius-s);
   &:hover {
-    background-color: ${V.color.backSofter};
+    background-color: var(--tg-fill);
   }
-  &:last-of-type {
-    border-bottom: none;
+  & + & {
+    border-top: 1px solid var(--tg-separator);
   }
 `;
 
@@ -39,8 +40,8 @@ const Transaction = styled.div`
   display: grid;
   min-width: 400px;
   width: fill-available;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  padding: 0 14px;
+  grid-template-columns: 1.1fr 0.8fr 1fr 1.3fr 0.8fr;
+  padding: 0 10px;
   cursor: pointer;
 `;
 
@@ -53,11 +54,12 @@ const ExplorerLinkWrapper = styled.div`
 
 const TriCellRoot = styled.div`
   display: flex;
-  padding: 1.2rem 0.5rem;
+  align-items: center;
+  padding: 10px 6px;
 `;
 
 const TriCellIcon = styled.img`
-  margin-right: 12px;
+  margin-right: 10px;
 `;
 
 const TriCellInfo = styled.div`
@@ -66,12 +68,13 @@ const TriCellInfo = styled.div`
 `;
 
 const Primary = styled.span`
-  font-size: ${V.font.p};
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 `;
 
 const Secondary = styled.span`
-  color: ${V.color.frontSoft};
-  font-size: ${V.font.p};
+  color: var(--tg-text-2);
+  font-size: 12.5px;
 `;
 
 type TriCellProps = {
@@ -106,18 +109,18 @@ enum ActivityType {
 const ActivityMap = {
   [ActivityType.MINTED]: {
     icon: bagIcon,
-    primary: 'Minted',
-    secondary: 'Created',
+    primary: 'act.minted' as TKey,
+    secondary: 'act.created' as TKey,
   },
   [ActivityType.SENT]: {
     icon: withdrawIcon,
-    primary: 'Sent',
-    secondary: 'Withdrawal',
+    primary: 'act.sent' as TKey,
+    secondary: 'act.withdrawal' as TKey,
   },
   [ActivityType.RECEIVED]: {
     icon: receiveIcon,
-    primary: 'Received',
-    secondary: 'Deposit',
+    primary: 'act.received' as TKey,
+    secondary: 'act.deposit' as TKey,
   },
 };
 
@@ -130,11 +133,12 @@ const ActivityList = ({
   transactions = [],
   resourceType,
 }: ActivityListProps): React.ReactElement => {
+  const t = useT();
   const tokelPriceUSD = useSelector(selectTokelPriceUSD);
 
   return (
     <ActivityListRoot>
-      {transactions.length === 0 && <InfoNote title="No data available" />}
+      {transactions.length === 0 && <InfoNote title={t('dash.noActivity')} />}
       {transactions
         .sort((a, b) => b.timestamp - a.timestamp)
         .map(tx => {
@@ -152,7 +156,11 @@ const ActivityList = ({
                 <TriCell icon={tx.unconfirmed ? clockIcon : checkIcon} primary={times[0]} />
                 <TriCell secondary={times[1]} />
 
-                <TriCell icon={activityData.icon} secondary={activityData.primary} align="center" />
+                <TriCell
+                  icon={activityData.icon}
+                  secondary={t(activityData.primary)}
+                  align="center"
+                />
                 <TriCell
                   primary={` ${tx.received ? '+' : '-'}${toBitcoinAmount(
                     processPossibleBN(tx.value)

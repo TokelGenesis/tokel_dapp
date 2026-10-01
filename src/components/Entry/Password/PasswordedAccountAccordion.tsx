@@ -6,9 +6,9 @@ import styled from '@emotion/styled';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 
 import PasswordIcon from 'assets/password.svg';
+import { useT } from 'i18n';
 import { dispatch } from 'store/rematch';
 import { selectEnvError, selectLoginFeedback } from 'store/selectors';
-import { V } from 'util/theming';
 import { Colors, SIZES } from 'vars/defines';
 import { IWallet } from 'vars/types';
 
@@ -45,13 +45,14 @@ const StyledAccordionItem = styled(AccordionPrimitive.Item)`
   &:focus-within {
     position: relative;
     z-index: 1;
-    /* box-shadow: 0 0 0 1px ${V.color.cornflower}; */
   }
 `;
 
 const StyledTextualItem = styled.div`
   display: flex;
-  padding: 20px;
+  padding: 16px;
+  color: var(--tg-text-2);
+  font-size: 13px;
 `;
 
 const StyledAccordionHeader = styled(AccordionPrimitive.Header)`
@@ -76,22 +77,36 @@ const StyledAccordionTrigger = styled(AccordionPrimitive.Trigger)<{ colors?: Tri
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: ${p => p.colors?.fore ?? V.color.frontSoft};
+  color: ${p => p.colors?.fore ?? 'var(--tg-text)'};
+  font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
+  border-top: 1px solid var(--tg-separator);
   &[data-state='closed'] {
-    background-color: ${p => p.colors?.closed ?? V.color.backSoft};
+    background-color: ${p => p.colors?.closed ?? 'transparent'};
   }
   &[data-state='open'] {
-    background-color: ${p => p.colors?.open ?? V.color.backHarder};
+    background-color: ${p => p.colors?.open ?? 'var(--tg-fill)'};
   }
   &:hover {
-    background-color: ${p => p.colors?.hover ?? V.color.backHarder};
+    background-color: ${p => p.colors?.hover ?? 'var(--tg-fill)'};
+  }
+  &::after {
+    content: '›';
+    color: var(--tg-text-3);
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+  &[data-state='open']::after {
+    transform: rotate(90deg);
   }
 `;
 
 const StyledContent = styled(AccordionPrimitive.Content)`
-  font-size: 15px;
-  color: ${V.color.front};
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--tg-text);
+  background: var(--tg-fill);
   &[data-state='open'] {
     animation: ${slideDown} 300ms cubic-bezier(0.87, 0, 0.13, 1) forwards;
   }
@@ -101,7 +116,7 @@ const StyledContent = styled(AccordionPrimitive.Content)`
 `;
 
 const StyledContentText = styled.div`
-  padding: 15px 20px;
+  padding: 4px 16px 14px;
 `;
 
 type AccordionTriggerProps = Parameters<typeof StyledAccordionTrigger>[0] & {
@@ -147,6 +162,7 @@ const PasswordInputWrapper = styled.div`
 `;
 
 const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
+  const t = useT();
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -174,7 +190,7 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
 
   const tryPassword = async () => {
     if (password.length < SIZES.MIN_PASSWORD_LENGTH) {
-      setError('Password must be at least 8 characters');
+      setError(t('pw.errShort'));
       return;
     }
     setIsLoading(true);
@@ -183,7 +199,7 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
       dispatch.account.SET_WALLET_FILE_NAME(wallet.name);
       setError('');
     } catch (err) {
-      setError('Incorrect password');
+      setError(t('pw.wrong'));
     }
     setIsLoading(false);
   };
@@ -202,13 +218,15 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
           tid="password-input"
           onKeyDown={e => e.key === 'Enter' && tryPassword()}
           icon={PasswordIcon}
-          placeholder="password"
+          placeholder={t('pw.password')}
           type="password"
+          width="flex"
           disabled={isLoading}
         />
         <SubmitButton
-          text="login"
-          theme={Colors.BLACK}
+          text={t('pw.open')}
+          customWidth="96px"
+          theme={Colors.PURPLE}
           onClick={tryPassword}
           submitting={isLoading}
           css={{ marginLeft: 10 }}
@@ -220,6 +238,7 @@ const PasswordedAccountLoginForm = ({ wallet }: { wallet: IWallet }) => {
 };
 
 const WalletAccordion = ({ wallets }: WalletAccordionProps) => {
+  const t = useT();
   const [accordionValue, setAccordionValue] = React.useState(null);
 
   return (
@@ -229,9 +248,7 @@ const WalletAccordion = ({ wallets }: WalletAccordionProps) => {
       value={accordionValue}
       onValueChange={setAccordionValue}
     >
-      {wallets.length === 0 && (
-        <StyledTextualItem>No wallets found, create one first!</StyledTextualItem>
-      )}
+      {wallets.length === 0 && <StyledTextualItem>{t('pw.none')}</StyledTextualItem>}
       {wallets.map(wallet => (
         <StyledAccordionItem key={wallet.filename} value={wallet.name}>
           <AccordionTrigger>{wallet.name}</AccordionTrigger>
@@ -241,15 +258,8 @@ const WalletAccordion = ({ wallets }: WalletAccordionProps) => {
         </StyledAccordionItem>
       ))}
       <StyledAccordionItem value="create-new">
-        <AccordionTrigger
-          colors={{
-            closed: V.color.cornflower,
-            open: V.color.cornflowerHard,
-            hover: V.color.cornflowerHard,
-            fore: V.color.frontSofter,
-          }}
-        >
-          Create new
+        <AccordionTrigger colors={{ fore: 'var(--tg-accent-text)' }} data-tid="wallet-create-new">
+          {t('pw.saveNew')}
         </AccordionTrigger>
         <AccordionContent>
           <CreatePasswordedWalletForm onSubmit={setAccordionValue} />
